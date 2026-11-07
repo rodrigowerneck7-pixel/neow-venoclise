@@ -64,10 +64,6 @@ export function BarraAbas({ ativa, onChange }: { ativa: Aba; onChange: (a: Aba) 
 }
 
 const EM_BREVE: Partial<Record<Aba, { fase: string; texto: string }>> = {
-  ictericia: {
-    fase: "Fase 1",
-    texto: "Hiperbilirrubinemia pela AAP 2022: limiar de fototerapia e de exsanguineotransfusão por IG, horas de vida e fatores de risco; fototerapia simples, dupla ou quádrupla; quando repetir a BT; suspensão e rebote.",
-  },
   internacao: { fase: "Fase 2", texto: "Motivos de internação na UCINCo/UTIN clicáveis, com os valores dos exames de cada um." },
   atb: { fase: "Fase 3", texto: "Iniciar ou não antibiótico, qual esquema (do protocolo do serviço), dose, duração, escalonamento e critérios de resposta." },
   dieta: { fase: "Fase 4", texto: "Tipo de leite, via e progressão da dieta, com a venóclise diminuindo junto." },

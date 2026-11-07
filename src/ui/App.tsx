@@ -11,6 +11,8 @@ import { FICHA_INICIAL, aplicarFicha, fichaDeEntrada, type FichaRN } from "../co
 import { ABAS, BarraAbas, EmBreve, idPainel, type Aba } from "./Abas";
 import { Ajustes } from "./Ajustes";
 import { FichaCompleta, FichaResumo } from "./Ficha";
+import { Ictericia } from "./Ictericia";
+import { ICTERICIA_INICIAL, type DadosIctericia } from "../core/ictericia";
 import { Bloqueio } from "./Bloqueio";
 import { Calculadora, ENTRADA_INICIAL } from "./Calculadora";
 import { Historico } from "./Historico";
@@ -32,6 +34,7 @@ export function App() {
   const [e, setEraw] = useState<EntradaVenoclise>(ENTRADA_INICIAL);
   const [ficha, setFichaRaw] = useState<FichaRN>(FICHA_INICIAL);
   const [aba, setAba] = useState<Aba>("venoclise");
+  const [ict, setIctRaw] = useState<DadosIctericia>(ICTERICIA_INICIAL);
   const [cfg, setCfgRaw] = useState<ConfigServico>(CONFIG_PADRAO);
   const [prefs, setPrefs] = useState<Preferencias>(PREFERENCIAS_PADRAO);
   const [persistente, setPersistente] = useState<boolean | null>(null);
@@ -44,21 +47,22 @@ export function App() {
 
   // ---- rascunho do paciente: salva sozinho (debounce) quando algo muda
   const sujo = useRef(false);
-  const refs = useRef({ atualId, e, cfg, ficha, pacientes });
-  refs.current = { atualId, e, cfg, ficha, pacientes };
+  const refs = useRef({ atualId, e, cfg, ficha, ict, pacientes });
+  refs.current = { atualId, e, cfg, ficha, ict, pacientes };
   const persistenciaPedida = useRef(false);
 
   const setE: Dispatch<SetStateAction<EntradaVenoclise>> = useCallback((v) => { sujo.current = true; setEraw(v); }, []);
   const setCfg: Dispatch<SetStateAction<ConfigServico>> = useCallback((v) => { sujo.current = true; setCfgRaw(v); }, []);
   const setFicha: Dispatch<SetStateAction<FichaRN>> = useCallback((v) => { sujo.current = true; setFichaRaw(v); }, []);
+  const setIct: Dispatch<SetStateAction<DadosIctericia>> = useCallback((v) => { sujo.current = true; setIctRaw(v); }, []);
 
   const salvarAgora = useCallback(async () => {
-    const { atualId: id, e: ent, cfg: c, ficha: fi, pacientes: ps } = refs.current;
+    const { atualId: id, e: ent, cfg: c, ficha: fi, ict: ic, pacientes: ps } = refs.current;
     if (!id || !sujo.current) return;
     const p = ps.find((x) => x.id === id);
     if (!p) return;
     sujo.current = false;
-    const novo: Paciente = { ...p, entrada: ent, cfg: c, ficha: fi, atualizadoEm: Date.now() };
+    const novo: Paciente = { ...p, entrada: ent, cfg: c, ficha: fi, ictericia: ic, atualizadoEm: Date.now() };
     await cofre.salvarPaciente(novo);
     setPacientes((l) => l.map((x) => (x.id === id ? novo : x)));
     if (!persistenciaPedida.current && navigator.storage?.persist) {
@@ -71,7 +75,7 @@ export function App() {
     if (!sujo.current || !atualId) return;
     const t = setTimeout(() => void salvarAgora(), 600);
     return () => clearTimeout(t);
-  }, [e, cfg, ficha, atualId, salvarAgora]);
+  }, [e, cfg, ficha, ict, atualId, salvarAgora]);
 
   // ---- carga inicial
   const carregarLista = useCallback(async () => {
@@ -108,7 +112,7 @@ export function App() {
     await salvarAgora();
     cofre.bloquear();
     setPacientes([]); setRegistros([]); setAtualId(null);
-    setEraw(ENTRADA_INICIAL); setCfgRaw(cfgPadrao); setFichaRaw(FICHA_INICIAL);
+    setEraw(ENTRADA_INICIAL); setCfgRaw(cfgPadrao); setFichaRaw(FICHA_INICIAL); setIctRaw(ICTERICIA_INICIAL);
     sujo.current = false;
     setTela("lista");
     setEstado("bloqueado");
@@ -160,14 +164,14 @@ export function App() {
     const p = pacientes.find((x) => x.id === id);
     if (!p) return;
     sujo.current = false;
-    setEraw(p.entrada); setCfgRaw(p.cfg); setFichaRaw(p.ficha ?? fichaDeEntrada(p.entrada)); setAtualId(id);
+    setEraw(p.entrada); setCfgRaw(p.cfg); setFichaRaw(p.ficha ?? fichaDeEntrada(p.entrada)); setIctRaw(p.ictericia ?? ICTERICIA_INICIAL); setAtualId(id);
     setRegistros(await cofre.listarRegistros(id));
     setAba("venoclise");
     setTela("calc");
   };
   const rapido = () => {
     sujo.current = false;
-    setAtualId(null); setRegistros([]); setEraw(ENTRADA_INICIAL); setCfgRaw(cfgPadrao); setFichaRaw(FICHA_INICIAL);
+    setAtualId(null); setRegistros([]); setEraw(ENTRADA_INICIAL); setCfgRaw(cfgPadrao); setFichaRaw(FICHA_INICIAL); setIctRaw(ICTERICIA_INICIAL);
     setAba("venoclise");
     setTela("calc");
   };
@@ -182,7 +186,7 @@ export function App() {
     await cofre.salvarPaciente(p);
     setPacientes((l) => [p, ...l]);
     sujo.current = false;
-    setEraw(p.entrada); setCfgRaw(p.cfg); setFichaRaw(FICHA_INICIAL); setAtualId(p.id); setRegistros([]);
+    setEraw(p.entrada); setCfgRaw(p.cfg); setFichaRaw(FICHA_INICIAL); setIctRaw(ICTERICIA_INICIAL); setAtualId(p.id); setRegistros([]);
     setAba("ficha");
     setTela("calc");
   };
@@ -369,6 +373,17 @@ export function App() {
                   }
                   onLimpar={limpar}
                   onHipoglicemia={() => { setHipoDeCalc(true); setTela("hipo"); }}
+                />
+              ) : aba === "ictericia" ? (
+                <Ictericia
+                  d={ict}
+                  setD={setIct}
+                  ficha={fichaEfetiva}
+                  nascimento={atual?.nascimento ?? null}
+                  agora={agora}
+                  topo={<FichaResumo f={ficha} setF={setFicha} dia={fichaEfetiva.diaDeVida} diaAutomatico={diaAutomatico} onAbrirFicha={() => setAba("ficha")} />}
+                  fotoNaVenoclise={!!e.fototerapia}
+                  onMarcarFotoVenoclise={() => setE((x) => ({ ...x, fototerapia: true }))}
                 />
               ) : (
                 <>

@@ -4,3 +4,10 @@ export function calcularDiaDeVida(nascimento: Date, agora: Date = new Date()): n
   if (!Number.isFinite(ms) || ms < 0) return null;
   return Math.floor(ms / (24 * 3600 * 1000)) + 1;
 }
+
+/** Horas de vida (decimais) entre o nascimento e um momento. null se o momento é anterior ao nascimento. */
+export function horasDeVida(nascimento: Date, momento: Date): number | null {
+  const ms = momento.getTime() - nascimento.getTime();
+  if (!Number.isFinite(ms) || ms < 0) return null;
+  return ms / 3_600_000;
+}

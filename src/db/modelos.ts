@@ -1,4 +1,5 @@
 import type { FichaRN } from "../core/ficha";
+import type { DadosIctericia } from "../core/ictericia";
 import type { ConfigServico, EntradaVenoclise } from "../core/tipos";
 
 /** Identificação mínima. NUNCA nome completo, prontuário ou CPF. */
@@ -15,6 +16,8 @@ export interface Paciente {
   cfg: ConfigServico;
   /** Dados comuns do RN. Ausente em pacientes salvos antes da Fase 0 dos módulos: migra de `entrada`. */
   ficha?: FichaRN;
+  /** Setor icterícia (BT, fatores, fototerapia). */
+  ictericia?: DadosIctericia;
 }
 
 /** Linha do histórico diário (uma prescrição salva). */

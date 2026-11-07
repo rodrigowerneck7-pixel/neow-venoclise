@@ -55,3 +55,25 @@ O prompt diz "+10 a 20%" (fototerapia) e "−10 a 20%" (asfixia/SDR/VM). Impleme
 
 ## n) "Extremo" na perda de peso — 🟡
 - Alerta "< 2% no extremo após o D3" usa **IG < 28 semanas ou PN < 1.000 g**.
+
+---
+
+# Icterícia (módulo 1, 07/11/2026)
+
+## o) ≥ 35 semanas: AAP 2022 × SBP 2021 — 🟢 decidido pelo Rodrigo (AAP 2022)
+- O manual da SBP enviado (nº 10, 2021, Tabela 9) ainda usa os limiares da **AAP 2004**, mais baixos (ex.: termo às 48 h: fototerapia 13 na SBP × 16,0–17,0 na AAP 2022).
+- O app segue a **AAP 2022** (Suppl. Tables 1–4, hora a hora), como decidido. A suspensão também segue a AAP (KAS 15: 2 mg/dL abaixo do limiar da hora de início), e não os valores fixos da SBP (≤ 11,5 / ≤ 9,5 / ≤ 14).
+
+## p) < 35 semanas: SBP 2021 Tabela 10 (Maisels 2012) — 🟡 confirmar
+- Faixas por IG corrigida; sem condição agravante o app mostra a **faixa** e a decisão dentro dela é do médico; com agravante usa o valor inferior (como diz a nota da tabela).
+- Nascido < 35 sem que já passou de 34 6/7 corrigida: a tabela acaba; o app **não calcula** (TODO(validar) qual referência usar).
+
+## q) "Simples / dupla / quádrupla" — 🟡 regra do serviço pendente
+- A AAP 2022 não define número de aparelhos; os limiares são para fototerapia **intensiva**. A SBP diz: perto da EST, alta irradiância na maior superfície (frente e costas).
+- O app **não escolhe** o número de aparelhos: o médico marca simples/dupla/quádrupla e a intensidade, e isso vai para o texto da prescrição. Se o serviço tiver regra (ex.: dupla a partir de X mg/dL do limiar), dá para incluir.
+
+## r) Depois de 14 dias e primeira hora — 🟢 bloqueio
+- A tabela da AAP vai da hora 1 à hora 359. Fora disso o app não calcula (pendência), e acima de 14 dias lembra colestase (BD > 1 mg/dL).
+
+## s) Seguimento abaixo do limiar (Fig. 7 da AAP 2022) — 🟡 não incorporado
+- A AAP define quando repetir a BT pela diferença até o limiar (figura de seguimento pós-alta). Não foi incorporado nesta fase: abaixo do limiar o app mostra só a distância e, a menos de 2 mg/dL, sugere reavaliar.

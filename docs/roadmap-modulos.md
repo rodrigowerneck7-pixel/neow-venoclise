@@ -13,10 +13,11 @@ interligados por **sugestão** (um módulo nunca muda o outro sozinho), terminan
 
 ## Decisões do Rodrigo
 - **Icterícia ≥ 35 semanas: AAP 2022** (Kemper et al., Pediatrics 2022;150(3):e2022058859). (07/11/2026)
-- **Fototerapia no serviço: simples, dupla e quádrupla.** Falta definir quando indicar cada uma. (07/11/2026)
+- **Fototerapia no serviço: simples, dupla e quádrupla.** Falta definir quando indicar cada uma; por ora o médico escolhe (DIVERGENCIAS q). (07/11/2026)
+- **Protocolos enviados (07/11/2026):** SBP Icterícia 2021 (usado em < 35 sem), Sepse neonatal, Hipoglicemia neonatal, Doses de antimicrobianos, Gráfico masculino — para as próximas fases.
 
 ## Pendentes (perguntar antes da fase correspondente)
-- < 35 semanas: referência (proposta: Maisels 2012).
+- < 35 semanas: implementado pela SBP 2021 Tab. 10 (Maisels 2012), do PDF enviado — confirmar (DIVERGENCIAS p).
 - Regra simples × dupla × quádrupla (gatilho por distância do limiar? por velocidade de subida?).
 - Protocolo de antibióticos do hospital (1ª/2ª/3ª linha) e fonte de doses (Neofax?).
 - Prescrição modelo anonimizada (formato/ordem dos itens).

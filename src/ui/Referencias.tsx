@@ -6,6 +6,7 @@ import {
 } from "../core/constantes";
 import { fmt } from "../core/numeros";
 import { rotuloGrupo } from "../core/faixas";
+import { MAISELS_2012, limiarAap } from "../core/ictericia";
 import { Card } from "./campos";
 
 const par = (a: readonly [number, number] | readonly number[]) => `${fmt(a[0])}–${fmt(a[1])}`;
@@ -79,12 +80,45 @@ export function Referencias() {
         <p>Bolus de SG 10% {HIPOGLICEMIA.bolusMlKg} mL/kg a {HIPOGLICEMIA.bolusVelocidadeMlMin} mL/min, sem cálcio no bolus. Manutenção com TIG {par(HIPOGLICEMIA.tigManutencao)} mg/kg/min. Desmame de {HIPOGLICEMIA.desmameMgKgMin} mg/kg/min, intervalo mínimo de {HIPOGLICEMIA.desmameIntervaloMinH} h.</p>
         <p className="text-caption text-subtle">Fonte: MS 2014.</p>
       </Secao>
+      <Secao titulo="Icterícia ≥ 35 sem — AAP 2022 (mg/dL)">
+        <p>Limiares de fototerapia <strong>intensiva</strong> e de exsanguineotransfusão por hora de vida. Amostra a cada 24 h; o app usa a tabela hora a hora.</p>
+        <Tabela
+          cab={["Grupo", "24 h", "48 h", "72 h", "96 h", "7 d"]}
+          linhas={[
+            ...([40, 38, 37, 36, 35] as const).map((g) => [`Foto ${g === 40 ? "≥ 40" : g} sem`, ...[24, 48, 72, 96, 168].map((h) => fmt(limiarAap("foto", false, g, h) ?? 0, 1))]),
+            ...([38, 37, 36, 35] as const).map((g) => [`Foto c/ risco ${g === 38 ? "≥ 38" : g}`, ...[24, 48, 72, 96, 168].map((h) => fmt(limiarAap("foto", true, g, h) ?? 0, 1))]),
+            ...([38, 37, 36, 35] as const).map((g) => [`EST ${g === 38 ? "≥ 38" : g} sem`, ...[24, 48, 72, 96, 168].map((h) => fmt(limiarAap("exs", false, g, h) ?? 0, 1))]),
+            ...([38, 37, 36, 35] as const).map((g) => [`EST c/ risco ${g === 38 ? "≥ 38" : g}`, ...[24, 48, 72, 96, 168].map((h) => fmt(limiarAap("exs", true, g, h) ?? 0, 1))]),
+          ]}
+        />
+        <ul className="list-disc pl-5 space-y-1">
+          <li>Fatores de risco de neurotoxicidade (além da IG): albumina &lt; 3,0 g/dL; doença hemolítica isoimune (Coombs +), deficiência de G6PD ou outra hemólise; sepse; instabilidade clínica significativa nas últimas 24 h.</li>
+          <li>Escalonamento: BT ≥ exsanguíneo − 2 mg/dL → exames STAT, hidratação IV, fototerapia intensiva, BT a cada 2 h; IVIG 0,5–1 g/kg em 2 h se Coombs + (pode repetir em 12 h).</li>
+          <li>EST urgente: BT ≥ limiar de exsanguíneo ou sinais de encefalopatia intermediária/avançada.</li>
+          <li>TcB: colher BT sérica se TcB a menos de 3 mg/dL do limiar de fototerapia ou ≥ 15.</li>
+          <li>Subida rápida (sugere hemólise): ≥ 0,3 mg/dL/h nas primeiras 24 h ou ≥ 0,2 depois.</li>
+          <li>Suspensão (opção): BT 2 mg/dL abaixo do limiar da hora de início. Rebote: BT 6–12 h após suspender se começou antes de 48 h, Coombs + ou hemólise; senão, no dia seguinte.</li>
+        </ul>
+        <p className="text-caption text-subtle">Fonte: Kemper AR et al. Pediatrics 2022;150(3):e2022058859 e Supplemental Tables 1–4.</p>
+      </Secao>
+      <Secao titulo="Icterícia < 35 sem — SBP 2021 / Maisels 2012">
+        <Tabela cab={["IG corrigida", "Fototerapia", "Exsanguíneo"]} linhas={MAISELS_2012.map((l) => [l.rotulo, par(l.foto), par(l.exs)])} />
+        <ul className="list-disc pl-5 space-y-1">
+          <li>Usar o valor inferior com: doença hemolítica, G6PD, albumina &lt; 2,5 g/dL, aumento rápido da BT, instabilidade (pH &lt; 7,15, VM, sepse/meningite, apneia/bradicardia com ventilação ou droga vasoativa nas últimas 24 h).</li>
+          <li>EST: BT subindo apesar de fototerapia intensiva na maior superfície, sinais de encefalopatia ou BT 5 mg/dL acima do nível.</li>
+          <li>≤ 1.000 g ou ≤ 26 sem: fototerapia profilática até 12 h com irradiância padrão (8–10 µW/cm²/nm); evitar alta intensidade.</li>
+          <li>Suspensão: BT 2 mg/dL abaixo do nível de indicação.</li>
+        </ul>
+        <p className="text-caption text-subtle">Fonte: SBP, Manual de Orientação nº 10 (2021), Tabela 10, adaptada de Maisels et al. J Perinatol 2012;32:660-4.</p>
+      </Secao>
       <Secao titulo="Fontes">
         <ul className="list-disc pl-5 space-y-1">
           <li>ESPGHAN/ESPEN/ESPR/CSPEN 2018. Guidelines on pediatric parenteral nutrition (Jochum; Mesotten; Mihatsch). Clin Nutr 2018;37.</li>
           <li>SBP 2023. Recomendações de nutrição parenteral em RN pré-termo.</li>
           <li>Brasil. Ministério da Saúde. Atenção à Saúde do Recém-Nascido, 2ª ed., 2014.</li>
           <li>NICE NG154 (2020) e NG29. Cochrane (Bell; Vemgal). Lorenz JM et al., 2008.</li>
+          <li>Kemper AR et al. Clinical Practice Guideline Revision: Management of Hyperbilirubinemia in the Newborn Infant 35 or More Weeks of Gestation. Pediatrics 2022;150(3):e2022058859.</li>
+          <li>SBP. Hiperbilirrubinemia indireta no período neonatal. Manual de Orientação nº 10, 2021.</li>
         </ul>
       </Secao>
     </div>
