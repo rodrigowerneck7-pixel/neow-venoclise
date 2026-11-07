@@ -106,3 +106,9 @@
 /* Entrada de página: parte de um estado visível, só desliza levemente. */
 @keyframes page-in { from { opacity: 0.6; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @utility page-enter { animation: page-in 220ms ease-out both; }
+
+/* Foco visível sempre (fora de @layer para vencer `outline-none` dos utilitários). */
+input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}

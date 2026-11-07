@@ -218,6 +218,20 @@ export function App() {
     await cofre.salvarPreferencias(p);
   };
 
+  const titulo = "NeoW Venóclise";
+  const tituloTela: Record<string, string> = {
+    lista: titulo, calc: "Cálculo de venóclise", ajustes: "Ajustes", novo: "Novo paciente",
+    editar: "Editar paciente", hipo: "Hipoglicemia", refs: "Referências",
+  };
+  const mainRef = useRef<HTMLElement>(null);
+  const primeira = useRef(true);
+  // Acessibilidade: ao trocar de tela, atualiza o título da aba e leva o foco ao conteúdo (leitor de tela).
+  useEffect(() => {
+    document.title = tela === "lista" ? titulo : `${tituloTela[tela]} · ${titulo}`;
+    if (primeira.current) { primeira.current = false; return; }
+    mainRef.current?.focus({ preventScroll: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tela]);
   if (carregando) return <div className="min-h-dvh bg-bg" />;
   if (estado === "bloqueado") {
     return (
@@ -235,7 +249,6 @@ export function App() {
   }
 
   const comPin = estado === "aberto";
-  const titulo = "NeoW Venóclise";
   const voltarHeader = () => {
     if (tela === "calc") void voltar();
     else if (tela === "editar") setTela("calc");
@@ -267,7 +280,8 @@ export function App() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-xl px-4 pt-4">
+      <main ref={mainRef} tabIndex={-1} aria-label={tituloTela[tela]} className="mx-auto max-w-xl px-4 pt-4 outline-none">
+        {tela !== "lista" && <h1 className="sr-only">{tituloTela[tela]}</h1>}
         {novaVersao && (
           <div role="status" className="mb-3 rounded-md border border-primary-2 bg-primary-soft px-3 py-2 text-body-sm flex items-center justify-between gap-3">
             <span>Nova versão disponível.</span>

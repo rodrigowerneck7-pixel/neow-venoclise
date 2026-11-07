@@ -2,6 +2,39 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { VitePWA } from "vite-plugin-pwa";
+import { createHash } from "node:crypto";
+import type { Plugin } from "vite";
+
+// CSP só no build (o dev server precisa de scripts inline do HMR). Permite apenas o próprio
+// origin + o script inline do tema (por hash). Sem rede externa: connect-src 'self'.
+function cspNoBuild(): Plugin {
+  return {
+    name: "neow-csp",
+    apply: "build",
+    transformIndexHtml: {
+      order: "post",
+      handler(html) {
+        const hashes = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(
+          (m) => `'sha256-${createHash("sha256").update(m[1]).digest("base64")}'`,
+        );
+        const csp = [
+          "default-src 'self'",
+          `script-src 'self' ${hashes.join(" ")}`,
+          "style-src 'self' 'unsafe-inline'",
+          "img-src 'self' data:",
+          "font-src 'self'",
+          "connect-src 'self'",
+          "worker-src 'self'",
+          "manifest-src 'self'",
+          "object-src 'none'",
+          "base-uri 'self'",
+          "form-action 'none'",
+        ].join("; ");
+        return html.replace("<head>", `<head>\n    <meta http-equiv="Content-Security-Policy" content="${csp}" />`);
+      },
+    },
+  };
+}
 
 // GitHub Pages serve em /<repo>/. O CI define BASE_PATH; localmente fica "./".
 const base = process.env.BASE_PATH ?? "./";
@@ -11,6 +44,7 @@ export default defineConfig({
   server: { host: "0.0.0.0", port: 5178 },
   plugins: [
     react(),
+    cspNoBuild(),
     tailwindcss(),
     VitePWA({
       registerType: "prompt", // o app mostra o banner "Nova versão disponível"

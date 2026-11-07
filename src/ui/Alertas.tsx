@@ -16,6 +16,7 @@ export function Justificar({ rotulo, onConfirmar }: { rotulo: string; onConfirma
         value={t}
         onChange={(e) => setT(e.target.value)}
         placeholder="Justificativa (fica no histórico)"
+        aria-label="Justificativa (fica no histórico)"
         className="w-full rounded-sm bg-surface border border-border px-3 text-input min-h-11"
       />
       <button

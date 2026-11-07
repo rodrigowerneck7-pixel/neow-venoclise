@@ -90,8 +90,8 @@ export function Segmentado<T extends string>({
   onChange: (v: T | null) => void;
 }) {
   return (
-    <div>
-      {rotulo && <div className="text-body-sm text-muted mb-1">{rotulo}</div>}
+    <div role="group" aria-label={rotulo}>
+      {rotulo && <div className="text-body-sm text-muted mb-1" aria-hidden>{rotulo}</div>}
       <div className="flex flex-wrap gap-2">
         {opcoes.map((o) => (
           <Chip key={o.valor} ativo={valor === o.valor} onClick={() => onChange(valor === o.valor ? null : o.valor)}>
