@@ -1,0 +1,108 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+/* Modo escuro baseado em classe (toggle manual), não só prefers-color-scheme. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Tokens do NeoW → utilitários Tailwind. `inline reference` faz os utilitários apontarem
+   direto para var(--color-*) de tokens.css, sem reemitir variáveis (evita referência circular). */
+@theme inline reference {
+  --color-*: initial;
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-surface-2: var(--color-surface-2);
+  --color-surface-3: var(--color-surface-3);
+  --color-border: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+  --color-text: var(--color-text);
+  --color-muted: var(--color-text-muted);
+  --color-subtle: var(--color-text-subtle);
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-2: var(--color-primary-2);
+  --color-primary-soft: var(--color-primary-soft);
+  --color-on-primary: var(--color-on-primary);
+  --color-on-primary-muted: var(--color-on-primary-muted);
+  --color-on-appbar: var(--color-on-appbar);
+  --color-on-appbar-muted: var(--color-on-appbar-muted);
+  --color-danger: var(--color-danger);
+  --color-danger-hover: var(--color-danger-hover);
+  --color-danger-soft: var(--color-danger-soft);
+  --color-on-danger: var(--color-on-danger);
+  --color-warning: var(--color-warning);
+  --color-warning-soft: var(--color-warning-soft);
+  --color-success: var(--color-success);
+  --color-success-soft: var(--color-success-soft);
+  --color-focus: var(--color-focus);
+  --color-mod-fluid: var(--color-mod-fluid);
+  --color-mod-fluid-soft: var(--color-mod-fluid-soft);
+  --color-mod-bili: var(--color-mod-bili);
+  --color-mod-bili-soft: var(--color-mod-bili-soft);
+  --color-mod-atb: var(--color-mod-atb);
+  --color-mod-atb-soft: var(--color-mod-atb-soft);
+  --color-mod-design: var(--color-mod-design);
+  --color-mod-design-soft: var(--color-mod-design-soft);
+
+  --font-sans: var(--font-sans);
+
+  --radius-*: initial;
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-full: var(--radius-full);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-raised: var(--shadow-raised);
+  --shadow-tabbar: var(--shadow-tabbar);
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    font-optical-sizing: auto;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: var(--text-body);
+    line-height: var(--leading-body);
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 { text-wrap: balance; }
+  /* Números de plantão não podem "dançar" */
+  .num, input, output, td.num { font-variant-numeric: tabular-nums; }
+  :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+  button, input, select { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+}
+
+/* --- Utilitários do NeoW --- */
+@utility tap { min-height: var(--tap-min); min-width: var(--tap-min); }
+@utility control-h { min-height: var(--control-h); }
+@utility safe-pb { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--space-sm)); }
+@utility safe-pt { padding-top: calc(env(safe-area-inset-top, 0px) + var(--space-sm)); }
+@utility appbar-bg { background: var(--gradient-appbar); }
+
+@utility text-display { font-size: var(--text-display); line-height: var(--leading-display); letter-spacing: var(--tracking-display); font-weight: 700; }
+@utility text-title { font-size: var(--text-title); line-height: var(--leading-title); letter-spacing: var(--tracking-title); font-weight: 700; }
+@utility text-heading { font-size: var(--text-heading); line-height: var(--leading-heading); letter-spacing: var(--tracking-heading); font-weight: 600; }
+@utility text-body { font-size: var(--text-body); line-height: var(--leading-body); }
+@utility text-body-sm { font-size: var(--text-body-sm); line-height: var(--leading-body-sm); }
+@utility text-caption { font-size: var(--text-caption); line-height: var(--leading-caption); }
+@utility text-eyebrow { font-size: var(--text-eyebrow); line-height: var(--leading-eyebrow); letter-spacing: var(--tracking-eyebrow); text-transform: uppercase; font-weight: 600; }
+@utility text-result { font-size: var(--text-result); line-height: var(--leading-result); letter-spacing: var(--tracking-result); font-weight: 700; }
+@utility text-input { font-size: var(--text-input); line-height: var(--leading-input); font-weight: 600; }
+
+/* Entrada de página: parte de um estado visível, só desliza levemente. */
+@keyframes page-in { from { opacity: 0.6; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@utility page-enter { animation: page-in 220ms ease-out both; }

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0E0E2C" />
+    <meta name="description" content="NeoW Venóclise — cálculo de venóclise neonatal para o plantão." />
+    <link rel="icon" href="./icons/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon-180.png" sizes="180x180" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="NeoW Venó" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>NeoW Venóclise</title>
+    <script>
+      // Tema antes da primeira pintura (evita flash). Só preferência de tema; nunca dado de paciente.
+      (function () {
+        try {
+          var p = localStorage.getItem("neow.theme");
+          var dark = p === "dark" || ((p === null || p === "system") && matchMedia("(prefers-color-scheme: dark)").matches);
+          if (dark) document.documentElement.classList.add("dark");
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

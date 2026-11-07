@@ -1,0 +1,148 @@
+/* ============================================================
+   NeoW — Design Tokens (fonte única de verdade)
+   ------------------------------------------------------------
+   Nenhum componente usa hex solto. Cor, espaçamento, raio e
+   tipografia vêm daqui. Modo escuro por classe `.dark` no
+   <html>, com toggle manual (além de seguir o sistema).
+   Referência visual: Whitebook (Afya) — clínico, premium.
+   Navy / preto / vermelho são PROPOSTA a aprovar por Werneck.
+   ============================================================ */
+
+:root {
+  color-scheme: light;
+
+  /* --- Superfícies (neutros com viés azul, não cinza puro) --- */
+  --color-bg: #f2f5f9;
+  --color-surface: #ffffff;
+  --color-surface-2: #eaeff6;      /* inputs, trilhos de controle */
+  --color-surface-3: #dfe6f0;      /* pressionado / hover em superfície 2 */
+  --color-border: #d7dfea;
+  --color-border-strong: #b4c0d2;
+
+  /* --- Texto --- */
+  --color-text: #0f1522;           /* preto suavizado com viés navy */
+  --color-text-muted: #4f5b72;
+  --color-text-subtle: #5f6b80;
+
+  /* --- Primária: azul-marinho --- */
+  --color-primary: #0b1f3f;
+  --color-primary-hover: #132a4d;
+  --color-primary-2: #1c3f78;      /* fim do gradiente da barra superior */
+  --color-primary-soft: #e4ecf8;
+  --color-on-primary: #ffffff;
+  --color-on-primary-muted: #b9c8e6;
+  --color-on-appbar: #ffffff;         /* texto sobre a barra navy / card de resultado (branco nos 2 temas) */
+  --color-on-appbar-muted: #b9c8e6;
+
+  /* --- Semânticas --- */
+  --color-danger: #cc2020;         /* só alerta, ação crítica, destaque pontual */
+  --color-danger-hover: #a81a1a;
+  --color-danger-soft: #fbe4e4;
+  --color-on-danger: #ffffff;
+
+  --color-warning: #a85b00;
+  --color-warning-soft: #fcefd6;
+
+  --color-success: #0e7a5f;
+  --color-success-soft: #dcf3ea;
+
+  --color-focus: #2f5fb3;
+
+  /* --- Acentos por módulo (só em ícones, chips e marcadores) --- */
+  --color-mod-fluid: #1f5aa8;      --color-mod-fluid-soft: #e1ecfa;   /* venóclise */
+  --color-mod-bili: #b8700a;       --color-mod-bili-soft: #fbeedc;    /* icterícia */
+  --color-mod-atb: #0f766e;        --color-mod-atb-soft: #daf1ee;     /* antimicrobianos */
+  --color-mod-design: #5b4fb3;     --color-mod-design-soft: #e9e6f8;  /* design system */
+
+  /* --- Gradiente da barra superior --- */
+  --gradient-appbar: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-2) 100%);
+
+  /* --- Espaçamento (escala de 4px) --- */
+  --space-2xs: 2px;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
+
+  /* --- Raio --- */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* --- Toque e layout --- */
+  --tap-min: 44px;
+  --control-h: 52px;               /* altura dos campos numéricos */
+  --content-max: 560px;
+  --tabbar-height: 62px;
+
+  /* --- Elevação --- */
+  --shadow-card: 0 1px 2px rgb(11 31 63 / 0.05), 0 6px 20px rgb(11 31 63 / 0.07);
+  --shadow-raised: 0 4px 10px rgb(11 31 63 / 0.10), 0 16px 40px rgb(11 31 63 / 0.14);
+  --shadow-tabbar: 0 -4px 20px rgb(11 31 63 / 0.06);
+
+  /* --- Tipografia --- */
+  --font-sans: "Inter Variable", Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --text-display: 30px; --leading-display: 34px; --tracking-display: -0.02em;
+  --text-title: 22px;   --leading-title: 28px;   --tracking-title: -0.012em;
+  --text-heading: 17px; --leading-heading: 24px; --tracking-heading: -0.005em;
+  --text-body: 16px;    --leading-body: 24px;
+  --text-body-sm: 14px; --leading-body-sm: 20px;
+  --text-caption: 12px; --leading-caption: 16px;
+  --text-eyebrow: 11px; --leading-eyebrow: 14px; --tracking-eyebrow: 0.08em;
+  --text-result: 40px;  --leading-result: 44px;  --tracking-result: -0.025em;
+  --text-input: 22px;   --leading-input: 28px;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --color-bg: #0e0e2c;
+  --color-surface: #1a1a46;
+  --color-surface-2: #232359;
+  --color-surface-3: #2c2c6a;
+  --color-border: #30306e;
+  --color-border-strong: #4a4a8e;
+
+  --color-text: #f2f4fa;
+  --color-text-muted: #b5bbd3;
+  --color-text-subtle: #9199bd;
+
+  --color-primary: #86abf7;
+  --color-primary-hover: #a3bffa;
+  --color-primary-2: #2a3e7a;
+  --color-primary-soft: #253468;
+  --color-on-primary: #0e0e2c;
+  --color-on-primary-muted: #c3d0f0;
+  --color-on-appbar: #f2f4fa;
+  --color-on-appbar-muted: #aab8dc;
+
+  --color-danger: #f87171;
+  --color-danger-hover: #fca5a5;
+  --color-danger-soft: #4a1d2a;
+  --color-on-danger: #0e0e2c;
+
+  --color-warning: #f5b942;
+  --color-warning-soft: #3e2f10;
+
+  --color-success: #3dd3a0;
+  --color-success-soft: #123c31;
+
+  --color-focus: #a3bffa;
+
+  --color-mod-fluid: #8fb8ff;      --color-mod-fluid-soft: #22345f;
+  --color-mod-bili: #f1b75b;       --color-mod-bili-soft: #3e3116;
+  --color-mod-atb: #5ad3c4;        --color-mod-atb-soft: #16403c;
+  --color-mod-design: #b3a8f5;     --color-mod-design-soft: #2e2a60;
+
+  --gradient-appbar: linear-gradient(135deg, #1a1a46 0%, #2a3e7a 100%);
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.35), 0 6px 20px rgb(0 0 0 / 0.28);
+  --shadow-raised: 0 4px 10px rgb(0 0 0 / 0.4), 0 16px 40px rgb(0 0 0 / 0.45);
+  --shadow-tabbar: 0 -4px 20px rgb(0 0 0 / 0.35);
+}
