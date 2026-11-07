@@ -27,20 +27,24 @@ function linha(id: DrogaId, tabela: string, p: Partial<ContextoAtb>): string {
 
 describe("integridade das tabelas", () => {
   it("nenhuma tabela tem duas linhas valendo ao mesmo tempo", () => {
-    const pesos = [500, 999, 1000, 1500, 2000, 2001, 4000];
-    const crs = [0.3, 0.49, 0.5, 0.7, 0.75, 0.8, 0.9, 1, 1.05, 1.1, 1.2, 1.3, 1.4, 1.45, 1.6, 1.7, 2];
+    // Varre só os eixos que cada tabela usa (rápido também no CI).
+    const valores: Record<string, number[]> = {
+      ig: Array.from({ length: 21 }, (_, i) => 22 + i),
+      pna: Array.from({ length: 62 }, (_, i) => i),
+      peso: [500, 999, 1000, 1500, 2000, 2001, 4000],
+      cr: [0.3, 0.49, 0.5, 0.7, 0.75, 0.8, 0.9, 1, 1.05, 1.1, 1.2, 1.3, 1.4, 1.45, 1.6, 1.7, 2],
+    };
     for (const dr of ANTIMICROBIANOS) {
       for (const t of dr.tabelas) {
-        for (let ig = 22; ig <= 42; ig += 1) {
-          for (let pna = 0; pna <= 61; pna += 1) {
-            for (const peso of pesos) {
-              for (const cr of crs) {
-                const c = ctx({ igSemanas: ig, pnaDias: pna, pesoG: peso, creatinina: cr });
-                const n = t.linhas.filter((l) => acharLinha({ ...t, linhas: [l] }, c).linha).length;
-                if (n > 1) throw new Error(`${dr.id}/${t.id}: ${n} linhas para IG ${ig}, PNA ${pna}, ${peso} g, Cr ${cr}`);
-              }
-            }
-          }
+        const usa = new Set(t.linhas.flatMap((l) => Object.keys(l.quando)));
+        // PMA depende de IG e PNA.
+        if (usa.has("pma")) { usa.add("ig"); usa.add("pna"); }
+        const eixos = (["ig", "pna", "peso", "cr"] as const).filter((k) => usa.has(k));
+        const combos = eixos.reduce<Record<string, number>[]>((acc, k) => acc.flatMap((a) => valores[k].map((v) => ({ ...a, [k]: v }))), [{}]);
+        for (const v of combos) {
+          const c = ctx({ igSemanas: v.ig ?? 38, pnaDias: v.pna ?? 2, pesoG: v.peso ?? 3000, creatinina: v.cr ?? null });
+          const n = t.linhas.filter((l) => acharLinha({ ...t, linhas: [l] }, c).linha).length;
+          if (n > 1) throw new Error(`${dr.id}/${t.id}: ${n} linhas para ${JSON.stringify(v)}`);
         }
       }
     }
