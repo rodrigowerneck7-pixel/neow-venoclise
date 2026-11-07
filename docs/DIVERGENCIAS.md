@@ -77,3 +77,34 @@ O prompt diz "+10 a 20%" (fototerapia) e "−10 a 20%" (asfixia/SDR/VM). Impleme
 
 ## s) Seguimento abaixo do limiar (Fig. 7 da AAP 2022) — 🟡 não incorporado
 - A AAP define quando repetir a BT pela diferença até o limiar (figura de seguimento pós-alta). Não foi incorporado nesta fase: abaixo do limiar o app mostra só a distância e, a menos de 2 mg/dL, sugere reavaliar.
+
+---
+
+# Internação (módulo 2, 07/11/2026)
+
+## t) Portaria 930/2012 — leituras do texto — 🟡 confirmar
+- O app só **lista** os critérios dos arts. 10 (UTIN), 16 (UCINCo) e 21 (UCINCa) que o médico marcou; não decide onde internar.
+- Art. 10, I: FiO₂ > 30% conta com qualquer suporte (O₂, CPAP, VNI, VM).
+- Art. 10, II: usa a **IG ao nascer** e o **peso de nascimento**. Arts. 16 e 21: usam o **peso atual** (sem ele, o de nascimento, com aviso).
+- **CPAP ou VNI com FiO₂ ≤ 30%**: a Portaria não enquadra (não é o art. 10, I, e o art. 16, II exclui CPAP). O app avisa e deixa para o serviço.
+- Art. 21 (Canguru): só aparece com todos os requisitos juntos (> 1.250 g, estável, enteral plena, mãe quer e pode).
+
+## u) Líquor (SBP 2022, Quadro 1 = Thomson 2018) — 🟡
+- A tabela traz idades "7, 14, 21, 28". O app lê como 0–7, 8–14, 15–21 e 22–28 dias completos. Depois de 28 dias: só registra.
+- O app **descreve o percentil** (ex.: "acima do P95"); não diz se é meningite.
+
+## v) Hemograma (SBP 2022, Quadro 2 = Manroe/Mouzinho) e escore de Rodwell — 🟡
+- A tabela tem pontos (nascimento, 12, 24, 36, 48, 60, 72, 120 h, 4º–28º dia). **Entre dois pontos**, o app compara com os dois: se só um acusa, mostra "limítrofe" e o escore vira faixa (ex.: 3–4).
+- Peso de nascimento de **exatamente 1.500 g**: a tabela separa < 1,5 e > 1,5 kg; o app usa as duas colunas.
+- Imaturos = bastões + metamielócitos + mielócitos + promielócitos. Campos vazios desses três últimos contam como 0 (dito na tela).
+- Rodwell (do resumo do artigo, PubMed 3361389): 7 itens de 1 ponto. "Leucometria alterada" conta sozinha só com **< 5.000** (corte da SBP); outros casos o médico marca. Neutrófilos, imaturos e I/T usam a tabela da SBP. A regra do artigo original para ausência de neutrófilos maduros não foi incorporada (só o resumo foi consultado).
+
+## w) Glicemia — 🟡
+- O critério do app continua **< 45 mg/dL (MS 2014)**, o mesmo da venóclise.
+- O Quadro 2 da SBP 2022 (adaptado da AAP 2011) aparece nas **primeiras 24 h** para pretermo tardio, PIG, FMD e GIG (e para sintomático). Os valores da PES (50/60/70) e o 47 da AAP citados no texto da SBP não são usados.
+- A SBP 2022 cita manutenção com TIG 5–8 mg/kg/min; a tela de hipoglicemia segue o MS 2014 (6–8).
+
+## x) Classificação automática e PIG/GIG — 🟡
+- Prematuridade e peso pela CID-10 P07 (< 37 e < 28 semanas; < 2.500, < 1.500 e < 1.000 g); pretermo tardio 34–36 6/7 pela SBP 2022.
+- PIG e GIG o médico marca: a curva de crescimento enviada (gráfico masculino) ainda não foi incorporada.
+- Gasometria, Hb/Ht e Apgar/pH de cordão: **só registro** (sem faixa cadastrada com fonte).

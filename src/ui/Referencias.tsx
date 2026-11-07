@@ -7,6 +7,7 @@ import {
 import { fmt } from "../core/numeros";
 import { rotuloGrupo } from "../core/faixas";
 import { MAISELS_2012, limiarAap } from "../core/ictericia";
+import { LIQUOR_THOMSON, NEUTROFILOS_SBP2022 } from "../core/internacao";
 import { Card } from "./campos";
 
 const par = (a: readonly [number, number] | readonly number[]) => `${fmt(a[0])}–${fmt(a[1])}`;
@@ -111,6 +112,52 @@ export function Referencias() {
         </ul>
         <p className="text-caption text-subtle">Fonte: SBP, Manual de Orientação nº 10 (2021), Tabela 10, adaptada de Maisels et al. J Perinatol 2012;32:660-4.</p>
       </Secao>
+      <Secao titulo="Internação — Portaria 930/2012">
+        <ul className="list-disc pl-5 space-y-1">
+          <li><b>UTIN (art. 10):</b> I — VM, ou insuficiência respiratória aguda com FiO₂ &gt; 30%; II — IG &lt; 30 semanas ou PN &lt; 1.000 g; III — cirurgia de grande porte ou PO imediato de pequeno/médio porte; IV — nutrição parenteral; V — CVC, droga vasoativa, prostaglandina, antibiótico para infecção grave, VM e FiO₂ &gt; 30%, exsanguineotransfusão ou transfusão por hemólise aguda ou coagulopatia.</li>
+          <li><b>UCINCo (art. 16):</b> I — após a UTIN, ainda com cuidados complementares; II — desconforto respiratório leve sem VM, CPAP ou capuz com FiO₂ &gt; 30%; III — 1.000–1.500 g, estável, sem acesso central, em enteral plena; IV — &gt; 1.500 g com venóclise, sonda e/ou antibiótico com quadro estável; V — fototerapia com BT perto da EST; VI — após EST, BT caindo e equilíbrio hemodinâmico; VII — cirurgia de médio porte, estável após PO imediato na UTIN.</li>
+          <li><b>UCINCa (art. 21):</b> &gt; 1.250 g, clinicamente estável, enteral plena, mãe com desejo e disponibilidade.</li>
+        </ul>
+        <p className="text-caption text-subtle">Fonte: Portaria GM/MS nº 930/2012 (art. 10, V na redação da Portaria nº 3.389/2013).</p>
+      </Secao>
+      <Secao titulo="Neutrófilos no RN (/mm³) — SBP 2022">
+        <Tabela
+          cab={["Idade", "Neutropenia < 1,5 kg", "Neutropenia > 1,5 kg", "Neutrofilia < 1,5 kg", "Neutrofilia > 1,5 kg", "Imaturos", "I/T"]}
+          linhas={NEUTROFILOS_SBP2022.map((l) => [
+            l.h === 0 ? "Nascimento" : l.h === 120 ? "120 h a 28 dias" : `${l.h} h`,
+            `< ${fmt(l.neutropenia[0])}`,
+            `< ${fmt(l.neutropenia[1])}`,
+            `> ${fmt(l.neutrofilia[0])}`,
+            `> ${fmt(l.neutrofilia[1])}`,
+            `> ${fmt(l.imaturos)}`,
+            `> ${fmt(l.it, 2)}`,
+          ])}
+        />
+        <ul className="list-disc pl-5 space-y-1">
+          <li>Achados mais valorizados: leucócitos &lt; 5.000, I/T &gt; 0,3, neutrófilos &lt; 2.000.</li>
+          <li>Escore de Rodwell (1 ponto cada): leucometria alterada, neutrófilos alterados, imaturos aumentados, I/T aumentada, I/M ≥ 0,3, plaquetas ≤ 150.000, alterações degenerativas. ≥ 3: sensibilidade 96%, especificidade 78%; ≤ 2: VPN 99%.</li>
+          <li>PCR anormal: &gt; 1 mg/dL (10 mg/L). Sobe ~24 h após o início da infecção; pico em 2–3 dias.</li>
+          <li>Hemocultura: 2 amostras de 1 mL, de sítios diferentes, antes do antibiótico. Crescimento após 48 h de incubação sugere contaminação.</li>
+        </ul>
+        <p className="text-caption text-subtle">Fonte: SBP, Sepse neonatal precoce, Documento Científico nº 11 (2022), Quadro 2 (Manroe 1979; Mouzinho 1994); Rodwell RL et al. J Pediatr 1988;112:761-7.</p>
+      </Secao>
+      <Secao titulo="Líquor — P5 e P95 (SBP 2022 / Thomson 2018)">
+        <Tabela
+          cab={["Idade", "Células/mm³ P95", "Proteína mg/dL P95", "Glicose mg/dL P5"]}
+          linhas={["0–7 d", "8–14 d", "15–21 d", "22–28 d"].map((idade, i) => [idade, fmt(LIQUOR_THOMSON.celulas[i][8], 1), fmt(LIQUOR_THOMSON.proteina[i][8], 1), fmt(LIQUOR_THOMSON.glicose[i][0], 1)])}
+        />
+        <p className="text-caption text-subtle">Fonte: SBP 2022 (sepse), Quadro 1 — Thomson J et al. Pediatrics 2018;141(3):e20173405.</p>
+      </Secao>
+      <Secao titulo="Glicemia nas primeiras 24 h — SBP 2022 (AAP 2011)">
+        <ul className="list-disc pl-5 space-y-1">
+          <li>Para pretermo tardio (34–36 6/7), PIG, filho de mãe diabética e GIG.</li>
+          <li>Sintomático e glicemia &lt; 40 mg/dL: glicose EV.</li>
+          <li>Assintomático, primeiras 4 h: dieta na 1ª hora e glicemia 30 min depois. &lt; 25: repetir dieta e glicemia em 1 h; de novo &lt; 25: glicose EV; 25–40: realimentar ou glicose EV se necessário.</li>
+          <li>Assintomático, 4 a 24 h: dieta a cada 2–3 h e glicemia antes de cada dieta. &lt; 35: repetir dieta e glicemia em 1 h; de novo &lt; 35: glicose EV; 35–45: realimentar ou glicose EV se necessário.</li>
+          <li>Glicemia esperada ≥ 45 mg/dL antes das dietas. Capilar fica ~10–15% abaixo da plasmática.</li>
+        </ul>
+        <p className="text-caption text-subtle">Fonte: SBP, Hipoglicemia neonatal, Documento Científico nº 16 (2022), Quadro 2. Critério do app para hipoglicemia: &lt; 45 mg/dL (MS 2014).</p>
+      </Secao>
       <Secao titulo="Fontes">
         <ul className="list-disc pl-5 space-y-1">
           <li>ESPGHAN/ESPEN/ESPR/CSPEN 2018. Guidelines on pediatric parenteral nutrition (Jochum; Mesotten; Mihatsch). Clin Nutr 2018;37.</li>
@@ -119,6 +166,10 @@ export function Referencias() {
           <li>NICE NG154 (2020) e NG29. Cochrane (Bell; Vemgal). Lorenz JM et al., 2008.</li>
           <li>Kemper AR et al. Clinical Practice Guideline Revision: Management of Hyperbilirubinemia in the Newborn Infant 35 or More Weeks of Gestation. Pediatrics 2022;150(3):e2022058859.</li>
           <li>SBP. Hiperbilirrubinemia indireta no período neonatal. Manual de Orientação nº 10, 2021.</li>
+          <li>Brasil. Ministério da Saúde. Portaria GM/MS nº 930, de 10/05/2012 (redação da Portaria nº 3.389/2013).</li>
+          <li>SBP. Sepse neonatal precoce e a abordagem do recém-nascido de risco. Documento Científico nº 11, 2022.</li>
+          <li>SBP. Hipoglicemia neonatal. Documento Científico nº 16, 2022.</li>
+          <li>Rodwell RL, Leslie AL, Tudehope DI. Early diagnosis of neonatal sepsis using a hematologic scoring system. J Pediatr 1988;112:761-7.</li>
         </ul>
       </Secao>
     </div>

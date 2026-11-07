@@ -1,5 +1,6 @@
 import type { FichaRN } from "../core/ficha";
 import type { DadosIctericia } from "../core/ictericia";
+import type { DadosInternacao } from "../core/internacao";
 import type { ConfigServico, EntradaVenoclise } from "../core/tipos";
 
 /** Identificação mínima. NUNCA nome completo, prontuário ou CPF. */
@@ -18,6 +19,7 @@ export interface Paciente {
   ficha?: FichaRN;
   /** Setor icterícia (BT, fatores, fototerapia). */
   ictericia?: DadosIctericia;
+  internacao?: DadosInternacao;
 }
 
 /** Linha do histórico diário (uma prescrição salva). */

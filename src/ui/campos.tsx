@@ -21,6 +21,7 @@ export function NumInput({
   unidade,
   placeholder,
   ajuda,
+  parse = parseNumeroBR,
 }: {
   rotulo: string;
   valor: number | null | undefined;
@@ -28,12 +29,14 @@ export function NumInput({
   unidade?: string;
   placeholder?: string;
   ajuda?: string;
+  /** Leitura do texto (padrão: decimal com vírgula ou ponto). */
+  parse?: (t: string) => number | null;
 }) {
   const id = useId();
   const [texto, setTexto] = useState(valor == null ? "" : String(valor).replace(".", ","));
   // Se o valor mudar por fora (ex.: botão "sugerido"), acompanha.
   useEffect(() => {
-    if (parseNumeroBR(texto) !== (valor ?? null)) setTexto(valor == null ? "" : String(valor).replace(".", ","));
+    if (parse(texto) !== (valor ?? null)) setTexto(valor == null ? "" : String(valor).replace(".", ","));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [valor]);
   return (
@@ -52,7 +55,7 @@ export function NumInput({
           placeholder={placeholder}
           onChange={(ev) => {
             setTexto(ev.target.value);
-            onChange(parseNumeroBR(ev.target.value));
+            onChange(parse(ev.target.value));
           }}
           className="num w-full bg-transparent outline-none text-input min-h-11 placeholder:text-subtle"
         />
