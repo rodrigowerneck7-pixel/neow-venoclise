@@ -11,9 +11,13 @@ import { Ajustes } from "./Ajustes";
 import { Bloqueio } from "./Bloqueio";
 import { Calculadora, ENTRADA_INICIAL } from "./Calculadora";
 import { Historico } from "./Historico";
+import { Hipoglicemia } from "./Hipoglicemia";
+import { Referencias } from "./Referencias";
+import { useTema } from "./Tema";
+import { registerSW } from "virtual:pwa-register";
 import { FormPaciente, ListaPacientes, diaDoPaciente } from "./Pacientes";
 
-type Tela = "lista" | "calc" | "ajustes" | "novo" | "editar";
+type Tela = "lista" | "calc" | "ajustes" | "novo" | "editar" | "hipo" | "refs";
 
 export function App() {
   const [carregando, setCarregando] = useState(true);
@@ -28,6 +32,10 @@ export function App() {
   const [persistente, setPersistente] = useState<boolean | null>(null);
   const [agora, setAgora] = useState(() => new Date());
   const [aviso, setAviso] = useState<string | null>(null);
+  const [cfgPadrao, setCfgPadrao] = useState<ConfigServico>(CONFIG_PADRAO);
+  const [tema, setTema] = useTema();
+  const [hipoDeCalc, setHipoDeCalc] = useState(false);
+  const [novaVersao, setNovaVersao] = useState<null | (() => void)>(null);
 
   // ---- rascunho do paciente: salva sozinho (debounce) quando algo muda
   const sujo = useRef(false);
@@ -68,6 +76,7 @@ export function App() {
     const est = await cofre.iniciar();
     await cofre.limpezaAutomatica();
     setPrefs(await cofre.preferencias());
+    setCfgPadrao(await cofre.configServico(CONFIG_PADRAO));
     setEstado(est);
     if (est !== "bloqueado") await carregarLista();
     setCarregando(false);
@@ -75,6 +84,11 @@ export function App() {
   }, [carregarLista]);
 
   useEffect(() => { void iniciar(); }, [iniciar]);
+
+  // aviso de nova versão (o service worker só atualiza quando você aceita)
+  useEffect(() => {
+    const atualizar = registerSW({ onNeedRefresh: () => setNovaVersao(() => () => void atualizar(true)) });
+  }, []);
 
   // relógio do dia de vida
   useEffect(() => {
@@ -88,11 +102,11 @@ export function App() {
     await salvarAgora();
     cofre.bloquear();
     setPacientes([]); setRegistros([]); setAtualId(null);
-    setEraw(ENTRADA_INICIAL); setCfgRaw(CONFIG_PADRAO);
+    setEraw(ENTRADA_INICIAL); setCfgRaw(cfgPadrao);
     sujo.current = false;
     setTela("lista");
     setEstado("bloqueado");
-  }, [salvarAgora]);
+  }, [salvarAgora, cfgPadrao]);
 
   useEffect(() => {
     if (estado !== "aberto") return;
@@ -145,7 +159,7 @@ export function App() {
   };
   const rapido = () => {
     sujo.current = false;
-    setAtualId(null); setRegistros([]); setEraw(ENTRADA_INICIAL); setCfgRaw(CONFIG_PADRAO);
+    setAtualId(null); setRegistros([]); setEraw(ENTRADA_INICIAL); setCfgRaw(cfgPadrao);
     setTela("calc");
   };
   const voltar = async () => {
@@ -155,7 +169,7 @@ export function App() {
   };
   const criar = async (v: { leito: string; iniciais: string; nascimento: string | null }) => {
     const t = Date.now();
-    const p: Paciente = { id: novoId(), ...v, criadoEm: t, atualizadoEm: t, entrada: ENTRADA_INICIAL, cfg: CONFIG_PADRAO };
+    const p: Paciente = { id: novoId(), ...v, criadoEm: t, atualizadoEm: t, entrada: ENTRADA_INICIAL, cfg: cfgPadrao };
     await cofre.salvarPaciente(p);
     setPacientes((l) => [p, ...l]);
     sujo.current = false;
@@ -193,7 +207,11 @@ export function App() {
   };
   const limpar = () => {
     if (atualId && !window.confirm("Limpar os dados deste paciente na tela? O histórico salvo não é apagado.")) return;
-    setE(ENTRADA_INICIAL); setCfg(CONFIG_PADRAO);
+    setE(ENTRADA_INICIAL); setCfg(cfgPadrao);
+  };
+  const salvarCfgPadrao = async (c: ConfigServico) => {
+    setCfgPadrao(c);
+    await cofre.salvarConfigServico(c);
   };
   const salvarPrefs = async (p: Preferencias) => {
     setPrefs(p);
@@ -217,7 +235,14 @@ export function App() {
   }
 
   const comPin = estado === "aberto";
-  const titulo = tela === "ajustes" ? "Ajustes" : tela === "novo" ? "Novo paciente" : "NeoW Venóclise";
+  const titulo = "NeoW Venóclise";
+  const voltarHeader = () => {
+    if (tela === "calc") void voltar();
+    else if (tela === "editar") setTela("calc");
+    else if (tela === "hipo") setTela(hipoDeCalc ? "calc" : "lista");
+    else setTela("lista");
+  };
+  const rotuloVoltar = tela === "calc" ? "Pacientes" : tela === "editar" || (tela === "hipo" && hipoDeCalc) ? "Voltar" : "Pacientes";
 
   return (
     <div className="min-h-dvh bg-bg text-text pb-28">
@@ -226,8 +251,8 @@ export function App() {
           {tela === "lista" ? (
             <h1 className="text-heading">{titulo}</h1>
           ) : (
-            <button type="button" onClick={() => (tela === "calc" ? void voltar() : tela === "editar" ? setTela("calc") : setTela("lista"))} className="tap text-heading">
-              ‹ {tela === "calc" ? "Pacientes" : tela === "editar" ? "Voltar" : "Pacientes"}
+            <button type="button" onClick={voltarHeader} className="tap text-heading">
+              ‹ {rotuloVoltar}
             </button>
           )}
           <div className="flex items-center gap-3">
@@ -243,10 +268,16 @@ export function App() {
       </header>
 
       <main className="mx-auto max-w-xl px-4 pt-4">
+        {novaVersao && (
+          <div role="status" className="mb-3 rounded-md border border-primary-2 bg-primary-soft px-3 py-2 text-body-sm flex items-center justify-between gap-3">
+            <span>Nova versão disponível.</span>
+            <button type="button" onClick={() => { void salvarAgora().then(novaVersao); }} className="tap rounded-sm bg-primary text-on-primary px-3 font-semibold">Atualizar</button>
+          </div>
+        )}
         {aviso && <div role="status" className="mb-3 rounded-md border border-success bg-success-soft px-3 py-2 text-body-sm">{aviso}</div>}
 
         {tela === "lista" && (
-          <ListaPacientes pacientes={pacientes} agora={agora} onAbrir={(id) => void abrir(id)} onNovo={() => setTela("novo")} onRapido={rapido} avisoPin={estado === "sem_pin" && pacientes.length > 0} />
+          <ListaPacientes pacientes={pacientes} agora={agora} onAbrir={(id) => void abrir(id)} onNovo={() => setTela("novo")} onRapido={rapido} onHipo={() => { setHipoDeCalc(false); setTela("hipo"); }} onRefs={() => setTela("refs")} avisoPin={estado === "sem_pin" && pacientes.length > 0} />
         )}
         {tela === "novo" && <FormPaciente onSalvar={(v) => void criar(v)} onCancelar={() => setTela("lista")} />}
         {tela === "editar" && atual && <FormPaciente inicial={atual} onSalvar={(v) => void editar(v)} onCancelar={() => setTela("calc")} onApagar={() => void apagar()} />}
@@ -255,11 +286,17 @@ export function App() {
             estado={estado}
             prefs={prefs}
             persistente={persistente}
+            cfgServico={cfgPadrao}
+            onCfgServico={(c) => void salvarCfgPadrao(c)}
+            tema={tema}
+            onTema={setTema}
             onPrefs={(p) => void salvarPrefs(p)}
             onMudou={() => { setEstado(cofre.estado()); void carregarLista(); }}
             onApagado={() => { setPacientes([]); setPrefs(PREFERENCIAS_PADRAO); setEstado("sem_pin"); setTela("lista"); }}
           />
         )}
+        {tela === "refs" && <Referencias />}
+        {tela === "hipo" && <Hipoglicemia pesoInicialG={hipoDeCalc ? (r.referencia?.pesoCalculoG ?? null) : null} />}
         {tela === "calc" && (
           <Calculadora
             e={eEfetiva}
@@ -295,6 +332,7 @@ export function App() {
               )
             }
             onLimpar={limpar}
+            onHipoglicemia={() => { setHipoDeCalc(true); setTela("hipo"); }}
           />
         )}
       </main>

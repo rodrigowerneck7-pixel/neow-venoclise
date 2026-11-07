@@ -32,9 +32,10 @@ interface Props {
   /** Se informado, mostra o botão de salvar a prescrição no histórico. */
   onSalvarHistorico?: (r: ResultadoVenoclise) => void;
   onLimpar: () => void;
+  onHipoglicemia: () => void;
 }
 
-export function Calculadora({ e, r, setE, cfg, setCfg, diaAutomatico, topo, abaixo, onSalvarHistorico, onLimpar }: Props) {
+export function Calculadora({ e, r, setE, cfg, setCfg, diaAutomatico, topo, abaixo, onSalvarHistorico, onLimpar, onHipoglicemia }: Props) {
   const set = (p: Partial<EntradaVenoclise>) => setE((x) => ({ ...x, ...p }));
   const setLab = (p: NonNullable<EntradaVenoclise["labs"]>) => setE((x) => ({ ...x, labs: { ...x.labs, ...p } }));
 
@@ -58,7 +59,7 @@ export function Calculadora({ e, r, setE, cfg, setCfg, diaAutomatico, topo, abai
       case "na-d1":
         return <Justificar rotulo="Confirmar Na no D1" onConfirmar={(t) => set({ overrideSodioD1: { justificativa: t } })} />;
       case "glicemia-hipo":
-        return <div className="text-caption text-subtle mt-1">A tela de hipoglicemia chega na Fase 4.</div>;
+        return <BotaoAlerta onClick={onHipoglicemia}>Abrir tela de hipoglicemia</BotaoAlerta>;
       default:
         return null;
     }

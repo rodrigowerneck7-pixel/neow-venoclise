@@ -150,3 +150,18 @@ export const GLICEMIA = {
   reduz2AteMgDl: 250, // 175–250: −2 mg/kg/min
   persistenteInsulinaMgDl: 180,
 } as const;
+
+// ---------------------------------------------------------------- Hipoglicemia (MS 2014)
+
+/**
+ * Fonte: MS 2014 (hipoglicemia sintomática ou < 45 mg/dL): bolus de SG 10% 2 mL/kg a 1 mL/min,
+ * SEM cálcio no bolus; manutenção com TIG 6–8 mg/kg/min; desmame de 1 mg/kg/min com intervalo mínimo de 1 h.
+ */
+export const HIPOGLICEMIA = {
+  bolusMlKg: 2,
+  bolusVelocidadeMlMin: 1,
+  tigManutencao: [6, 8],
+  desmameMgKgMin: 1,
+  desmameIntervaloMinH: 1,
+  concBolusPct: 10,
+} as const;

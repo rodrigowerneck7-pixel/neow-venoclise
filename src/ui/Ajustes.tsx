@@ -3,7 +3,11 @@ import { ErroCofre } from "../db/cofre";
 import type { EstadoCofre, Preferencias } from "../db/modelos";
 import { cofre } from "../db/instancia";
 import { CampoPin } from "./Bloqueio";
+import type { ConfigServico as Cfg } from "../core/tipos";
 import { Card, Segmentado } from "./campos";
+import { ComoInstalar } from "./ComoInstalar";
+import { ConfigServico } from "./ConfigServico";
+import { CartaoTema, type Tema } from "./Tema";
 
 type Msg = { tipo: "ok" | "erro"; texto: string } | null;
 const Aviso = ({ m }: { m: Msg }) =>
@@ -187,6 +191,10 @@ export function Ajustes({
   estado,
   prefs,
   persistente,
+  cfgServico,
+  onCfgServico,
+  tema,
+  onTema,
   onPrefs,
   onMudou,
   onApagado,
@@ -194,12 +202,18 @@ export function Ajustes({
   estado: EstadoCofre;
   prefs: Preferencias;
   persistente: boolean | null;
+  cfgServico: Cfg;
+  onCfgServico: (c: Cfg) => void;
+  tema: Tema;
+  onTema: (t: Tema) => void;
   onPrefs: (p: Preferencias) => void;
   onMudou: () => void;
   onApagado: () => void;
 }) {
   return (
     <div className="space-y-4">
+      <ConfigServico key={JSON.stringify(cfgServico)} cfg={cfgServico} onSalvar={onCfgServico} />
+      <CartaoTema tema={tema} onTema={onTema} />
       <Seguranca estado={estado} onMudou={onMudou} />
       <Backup estado={estado} onMudou={onMudou} />
       <Retencao prefs={prefs} onSalvar={onPrefs} />
@@ -210,6 +224,7 @@ export function Ajustes({
           {persistente === null && "Verificando…"}
         </p>
       </Card>
+      <ComoInstalar />
       <ApagarTudo onApagado={onApagado} />
     </div>
   );

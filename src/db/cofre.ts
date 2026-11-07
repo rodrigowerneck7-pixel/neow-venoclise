@@ -10,6 +10,7 @@ import {
   pinValido,
   type Envelope,
 } from "./cripto";
+import type { ConfigServico } from "../core/tipos";
 import { PREFERENCIAS_PADRAO, type EstadoCofre, type Paciente, type Preferencias, type Registro } from "./modelos";
 
 interface LinhaPaciente { id: string; atualizadoEm: number; dados: Envelope }
@@ -203,6 +204,15 @@ export class Cofre {
   }
   async salvarPreferencias(p: Preferencias): Promise<void> {
     await this.db.meta.put({ chave: "preferencias", valor: p });
+  }
+
+  /** Padrões do serviço (ampolas, preset de Ca...). Não identificam ninguém: ficam em claro. */
+  async configServico(base: ConfigServico): Promise<ConfigServico> {
+    const m = await this.db.meta.get("config");
+    return { ...base, ...((m?.valor as Partial<ConfigServico> | undefined) ?? {}) };
+  }
+  async salvarConfigServico(c: ConfigServico): Promise<void> {
+    await this.db.meta.put({ chave: "config", valor: c });
   }
 
   /** Apaga pacientes sem atualização há mais de `retencaoDias`. Usa só índices em claro (funciona bloqueado). */

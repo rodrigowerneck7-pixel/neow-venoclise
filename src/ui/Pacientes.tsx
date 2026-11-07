@@ -18,6 +18,8 @@ export function ListaPacientes({
   onAbrir,
   onNovo,
   onRapido,
+  onHipo,
+  onRefs,
   avisoPin,
 }: {
   pacientes: Paciente[];
@@ -25,6 +27,8 @@ export function ListaPacientes({
   onAbrir: (id: string) => void;
   onNovo: () => void;
   onRapido: () => void;
+  onHipo: () => void;
+  onRefs: () => void;
   avisoPin: boolean;
 }) {
   return (
@@ -39,6 +43,10 @@ export function ListaPacientes({
         <button type="button" onClick={onRapido} className="tap rounded-sm bg-surface-2 border border-border font-semibold">Cálculo rápido</button>
       </div>
       <p className="text-caption text-subtle">Cálculo rápido não salva nada no aparelho.</p>
+      <div className="grid grid-cols-2 gap-3">
+        <button type="button" onClick={onHipo} className="tap rounded-sm border border-danger text-danger font-semibold">Hipoglicemia</button>
+        <button type="button" onClick={onRefs} className="tap rounded-sm bg-surface-2 border border-border font-semibold">Referências</button>
+      </div>
       {pacientes.length === 0 ? (
         <Card titulo="Pacientes">
           <p className="text-body-sm text-muted">Nenhum paciente salvo. Cadastre só leito e iniciais.</p>

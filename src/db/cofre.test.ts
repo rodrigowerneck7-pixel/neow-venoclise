@@ -142,6 +142,16 @@ describe("backup", () => {
   });
 });
 
+describe("config do serviço", () => {
+  it("persiste por cima do padrão e some no apagar tudo", async () => {
+    expect((await c.configServico(CONFIG_PADRAO)).nacl).toBe("20");
+    await c.salvarConfigServico({ ...CONFIG_PADRAO, nacl: "10" });
+    expect((await c.configServico(CONFIG_PADRAO)).nacl).toBe("10");
+    await c.apagarTudo();
+    expect((await c.configServico(CONFIG_PADRAO)).nacl).toBe("20");
+  });
+});
+
 describe("limpeza automática e apagar tudo", () => {
   it("apaga só os pacientes antigos e funciona com o cofre bloqueado", async () => {
     await c.ativarPin("1234", IT);
