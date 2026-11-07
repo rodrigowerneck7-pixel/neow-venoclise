@@ -1,3 +1,4 @@
+import type { FichaRN } from "../core/ficha";
 import type { ConfigServico, EntradaVenoclise } from "../core/tipos";
 
 /** Identificação mínima. NUNCA nome completo, prontuário ou CPF. */
@@ -9,9 +10,11 @@ export interface Paciente {
   nascimento: string | null;
   criadoEm: number;
   atualizadoEm: number;
-  /** Rascunho atual (tudo que está na tela). */
+  /** Rascunho atual da venóclise. Peso, IG e dia de vida valem os da `ficha` (quando existe). */
   entrada: EntradaVenoclise;
   cfg: ConfigServico;
+  /** Dados comuns do RN. Ausente em pacientes salvos antes da Fase 0 dos módulos: migra de `entrada`. */
+  ficha?: FichaRN;
 }
 
 /** Linha do histórico diário (uma prescrição salva). */

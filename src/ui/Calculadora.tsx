@@ -1,6 +1,7 @@
 import { type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { PRESETS_CALCIO } from "../core/constantes";
 import { fmt } from "../core/numeros";
+import type { FichaRN } from "../core/ficha";
 import type { Alerta, ConfigServico, EntradaVenoclise, ResultadoVenoclise } from "../core/tipos";
 import { Justificar, PainelAlertas } from "./Alertas";
 import { Resultado } from "./Resultado";
@@ -23,8 +24,9 @@ interface Props {
   setE: Dispatch<SetStateAction<EntradaVenoclise>>;
   cfg: ConfigServico;
   setCfg: Dispatch<SetStateAction<ConfigServico>>;
-  /** Dia de vida calculado pela data/hora de nascimento (trava o campo). */
-  diaAutomatico: boolean;
+  /** Resumo/campos da ficha do RN (peso, IG, dia de vida vêm da ficha). */
+  ficha: ReactNode;
+  setFicha: Dispatch<SetStateAction<FichaRN>>;
   /** Faixa de identificação do paciente, acima dos alertas. */
   topo?: ReactNode;
   /** Cards extras (histórico) depois do resultado. */
@@ -35,7 +37,7 @@ interface Props {
   onHipoglicemia: () => void;
 }
 
-export function Calculadora({ e, r, setE, cfg, setCfg, diaAutomatico, topo, abaixo, onSalvarHistorico, onLimpar, onHipoglicemia }: Props) {
+export function Calculadora({ e, r, setE, cfg, setCfg, ficha, setFicha, topo, abaixo, onSalvarHistorico, onLimpar, onHipoglicemia }: Props) {
   const set = (p: Partial<EntradaVenoclise>) => setE((x) => ({ ...x, ...p }));
   const setLab = (p: NonNullable<EntradaVenoclise["labs"]>) => setE((x) => ({ ...x, labs: { ...x.labs, ...p } }));
 
@@ -46,11 +48,11 @@ export function Calculadora({ e, r, setE, cfg, setCfg, diaAutomatico, topo, abai
   const acoes = (a: Alerta) => {
     switch (a.id) {
       case "peso-nasc-kg":
-        return <BotaoAlerta onClick={() => set({ confirmouKg: { ...e.confirmouKg, nascimento: true } })}>Sim, é kg</BotaoAlerta>;
+        return <BotaoAlerta onClick={() => setFicha((f) => ({ ...f, confirmouKg: { ...f.confirmouKg, nascimento: true } }))}>Sim, é kg</BotaoAlerta>;
       case "peso-atual-kg":
-        return <BotaoAlerta onClick={() => set({ confirmouKg: { ...e.confirmouKg, atual: true } })}>Sim, é kg</BotaoAlerta>;
+        return <BotaoAlerta onClick={() => setFicha((f) => ({ ...f, confirmouKg: { ...f.confirmouKg, atual: true } }))}>Sim, é kg</BotaoAlerta>;
       case "variacao-peso":
-        return <BotaoAlerta onClick={() => set({ confirmouVariacaoPeso: true })}>Pesos conferidos</BotaoAlerta>;
+        return <BotaoAlerta onClick={() => setFicha((f) => ({ ...f, confirmouVariacaoPeso: true }))}>Pesos conferidos</BotaoAlerta>;
       case "volume-fora":
       case "volume-todo":
         return <Justificar rotulo="Confirmar volume fora da diretriz" onConfirmar={(t) => set({ foraDaFaixa: { ...e.foraDaFaixa, volume: { confirmado: true, justificativa: t } } })} />;
@@ -69,18 +71,10 @@ export function Calculadora({ e, r, setE, cfg, setCfg, diaAutomatico, topo, abai
     <>
       <div className="space-y-4">
         {topo}
+        {ficha}
+        {ref && <p className="text-body-sm text-muted px-1">{ref.grupo} · peso de cálculo {fmt(ref.pesoCalculoG, 0)} g ({ref.pesoUsado === "nascimento" ? "nascimento" : "atual"})</p>}
         <PainelAlertas alertas={r.alertas} acoes={acoes} />
 
-        <Card titulo="Paciente">
-          <div className="grid grid-cols-2 gap-3">
-            <NumInput rotulo="Peso de nascimento" unidade="g" valor={e.pesoNascimento} onChange={(v) => set({ pesoNascimento: v, confirmouKg: { ...e.confirmouKg, nascimento: false } })} />
-            <NumInput rotulo="Peso atual" unidade="g" valor={e.pesoAtual} onChange={(v) => set({ pesoAtual: v, confirmouKg: { ...e.confirmouKg, atual: false } })} ajuda={e.diaDeVida === 1 ? "Opcional no D1" : "Obrigatório"} />
-            <NumInput rotulo="IG (semanas)" valor={e.igSemanas} onChange={(v) => set({ igSemanas: v })} />
-            <NumInput rotulo="IG (dias)" valor={e.igDias} onChange={(v) => set({ igDias: v })} />
-            <NumInput rotulo="Dia de vida" valor={e.diaDeVida} onChange={(v) => !diaAutomatico && set({ diaDeVida: v })} ajuda={diaAutomatico ? "Calculado pela data/hora de nascimento" : "D1 = primeiras 24 h"} />
-          </div>
-          {ref && <p className="text-body-sm text-muted">{ref.grupo} · peso de cálculo {fmt(ref.pesoCalculoG, 0)} g ({ref.pesoUsado === "nascimento" ? "nascimento" : "atual"})</p>}
-        </Card>
 
         <Card titulo="Contexto">
           <Segmentado
@@ -211,7 +205,7 @@ export function Calculadora({ e, r, setE, cfg, setCfg, diaAutomatico, topo, abai
         {abaixo}
 
         <button type="button" onClick={onLimpar} className="tap w-full rounded-sm border border-border text-muted font-semibold">
-          Limpar tudo
+          Limpar venóclise
         </button>
       </div>
     </>

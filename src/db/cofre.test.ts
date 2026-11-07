@@ -37,6 +37,22 @@ describe("sem PIN", () => {
   });
 });
 
+describe("ficha do RN", () => {
+  it("guarda a ficha junto do paciente e ela sobrevive ao PIN (cifrada)", async () => {
+    const ficha = { pesoNascimento: 1200, igSemanas: 30, diaDeVida: 2, tipagemMae: { abo: "O" as const, rh: "pos" as const }, coombsDireto: "positivo" as const };
+    await c.salvarPaciente({ ...pac("a"), ficha });
+    await c.ativarPin("1234", IT);
+    expect(JSON.stringify(await c.exportar())).not.toContain("positivo");
+    c.bloquear();
+    await c.desbloquear("1234");
+    expect((await c.listarPacientes())[0].ficha).toEqual(ficha);
+  });
+  it("paciente antigo (sem ficha) continua abrindo", async () => {
+    await c.salvarPaciente(pac("a"));
+    expect((await c.listarPacientes())[0].ficha).toBeUndefined();
+  });
+});
+
 describe("com PIN", () => {
   it("cifra o que já existia e exige PIN depois de bloquear", async () => {
     await c.salvarPaciente(pac("a"));

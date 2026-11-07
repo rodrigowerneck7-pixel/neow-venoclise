@@ -7,7 +7,10 @@ import { cofre } from "../db/instancia";
 import { novoId } from "../db/cofre";
 import { PREFERENCIAS_PADRAO, type EstadoCofre, type Paciente, type Preferencias, type Registro } from "../db/modelos";
 import { parseNascimento } from "../db/validacao";
+import { FICHA_INICIAL, aplicarFicha, fichaDeEntrada, type FichaRN } from "../core/ficha";
+import { ABAS, BarraAbas, EmBreve, idPainel, type Aba } from "./Abas";
 import { Ajustes } from "./Ajustes";
+import { FichaCompleta, FichaResumo } from "./Ficha";
 import { Bloqueio } from "./Bloqueio";
 import { Calculadora, ENTRADA_INICIAL } from "./Calculadora";
 import { Historico } from "./Historico";
@@ -15,7 +18,7 @@ import { Hipoglicemia } from "./Hipoglicemia";
 import { Referencias } from "./Referencias";
 import { useTema } from "./Tema";
 import { registerSW } from "virtual:pwa-register";
-import { FormPaciente, ListaPacientes, diaDoPaciente } from "./Pacientes";
+import { FormPaciente, ListaPacientes } from "./Pacientes";
 
 type Tela = "lista" | "calc" | "ajustes" | "novo" | "editar" | "hipo" | "refs";
 
@@ -27,6 +30,8 @@ export function App() {
   const [atualId, setAtualId] = useState<string | null>(null);
   const [registros, setRegistros] = useState<Registro[]>([]);
   const [e, setEraw] = useState<EntradaVenoclise>(ENTRADA_INICIAL);
+  const [ficha, setFichaRaw] = useState<FichaRN>(FICHA_INICIAL);
+  const [aba, setAba] = useState<Aba>("venoclise");
   const [cfg, setCfgRaw] = useState<ConfigServico>(CONFIG_PADRAO);
   const [prefs, setPrefs] = useState<Preferencias>(PREFERENCIAS_PADRAO);
   const [persistente, setPersistente] = useState<boolean | null>(null);
@@ -39,20 +44,21 @@ export function App() {
 
   // ---- rascunho do paciente: salva sozinho (debounce) quando algo muda
   const sujo = useRef(false);
-  const refs = useRef({ atualId, e, cfg, pacientes });
-  refs.current = { atualId, e, cfg, pacientes };
+  const refs = useRef({ atualId, e, cfg, ficha, pacientes });
+  refs.current = { atualId, e, cfg, ficha, pacientes };
   const persistenciaPedida = useRef(false);
 
   const setE: Dispatch<SetStateAction<EntradaVenoclise>> = useCallback((v) => { sujo.current = true; setEraw(v); }, []);
   const setCfg: Dispatch<SetStateAction<ConfigServico>> = useCallback((v) => { sujo.current = true; setCfgRaw(v); }, []);
+  const setFicha: Dispatch<SetStateAction<FichaRN>> = useCallback((v) => { sujo.current = true; setFichaRaw(v); }, []);
 
   const salvarAgora = useCallback(async () => {
-    const { atualId: id, e: ent, cfg: c, pacientes: ps } = refs.current;
+    const { atualId: id, e: ent, cfg: c, ficha: fi, pacientes: ps } = refs.current;
     if (!id || !sujo.current) return;
     const p = ps.find((x) => x.id === id);
     if (!p) return;
     sujo.current = false;
-    const novo: Paciente = { ...p, entrada: ent, cfg: c, atualizadoEm: Date.now() };
+    const novo: Paciente = { ...p, entrada: ent, cfg: c, ficha: fi, atualizadoEm: Date.now() };
     await cofre.salvarPaciente(novo);
     setPacientes((l) => l.map((x) => (x.id === id ? novo : x)));
     if (!persistenciaPedida.current && navigator.storage?.persist) {
@@ -65,7 +71,7 @@ export function App() {
     if (!sujo.current || !atualId) return;
     const t = setTimeout(() => void salvarAgora(), 600);
     return () => clearTimeout(t);
-  }, [e, cfg, atualId, salvarAgora]);
+  }, [e, cfg, ficha, atualId, salvarAgora]);
 
   // ---- carga inicial
   const carregarLista = useCallback(async () => {
@@ -102,7 +108,7 @@ export function App() {
     await salvarAgora();
     cofre.bloquear();
     setPacientes([]); setRegistros([]); setAtualId(null);
-    setEraw(ENTRADA_INICIAL); setCfgRaw(cfgPadrao);
+    setEraw(ENTRADA_INICIAL); setCfgRaw(cfgPadrao); setFichaRaw(FICHA_INICIAL);
     sujo.current = false;
     setTela("lista");
     setEstado("bloqueado");
@@ -143,7 +149,8 @@ export function App() {
   const nascimento = parseNascimento(atual?.nascimento);
   const diaAuto = nascimento ? calcularDiaDeVida(nascimento, agora) : null;
   const diaAutomatico = diaAuto != null;
-  const eEfetiva = useMemo<EntradaVenoclise>(() => (diaAuto != null ? { ...e, diaDeVida: diaAuto } : e), [e, diaAuto]);
+  const fichaEfetiva = useMemo<FichaRN>(() => (diaAuto != null ? { ...ficha, diaDeVida: diaAuto } : ficha), [ficha, diaAuto]);
+  const eEfetiva = useMemo<EntradaVenoclise>(() => aplicarFicha(e, fichaEfetiva), [e, fichaEfetiva]);
   const r = useMemo(() => calcularVenoclise(eEfetiva, cfg), [eEfetiva, cfg]);
   const c = r.calculo;
   const resumo = c ? `${fmt(c.vazaoMlH, 1)} mL/h · ${fmt(c.concFinalRealPct, 1)}%` : "—";
@@ -153,13 +160,15 @@ export function App() {
     const p = pacientes.find((x) => x.id === id);
     if (!p) return;
     sujo.current = false;
-    setEraw(p.entrada); setCfgRaw(p.cfg); setAtualId(id);
+    setEraw(p.entrada); setCfgRaw(p.cfg); setFichaRaw(p.ficha ?? fichaDeEntrada(p.entrada)); setAtualId(id);
     setRegistros(await cofre.listarRegistros(id));
+    setAba("venoclise");
     setTela("calc");
   };
   const rapido = () => {
     sujo.current = false;
-    setAtualId(null); setRegistros([]); setEraw(ENTRADA_INICIAL); setCfgRaw(cfgPadrao);
+    setAtualId(null); setRegistros([]); setEraw(ENTRADA_INICIAL); setCfgRaw(cfgPadrao); setFichaRaw(FICHA_INICIAL);
+    setAba("venoclise");
     setTela("calc");
   };
   const voltar = async () => {
@@ -169,11 +178,12 @@ export function App() {
   };
   const criar = async (v: { leito: string; iniciais: string; nascimento: string | null }) => {
     const t = Date.now();
-    const p: Paciente = { id: novoId(), ...v, criadoEm: t, atualizadoEm: t, entrada: ENTRADA_INICIAL, cfg: cfgPadrao };
+    const p: Paciente = { id: novoId(), ...v, criadoEm: t, atualizadoEm: t, entrada: ENTRADA_INICIAL, cfg: cfgPadrao, ficha: FICHA_INICIAL };
     await cofre.salvarPaciente(p);
     setPacientes((l) => [p, ...l]);
     sujo.current = false;
-    setEraw(p.entrada); setCfgRaw(p.cfg); setAtualId(p.id); setRegistros([]);
+    setEraw(p.entrada); setCfgRaw(p.cfg); setFichaRaw(FICHA_INICIAL); setAtualId(p.id); setRegistros([]);
+    setAba("ficha");
     setTela("calc");
   };
   const editar = async (v: { leito: string; iniciais: string; nascimento: string | null }) => {
@@ -206,8 +216,12 @@ export function App() {
     setTimeout(() => setAviso(null), 3000);
   };
   const limpar = () => {
-    if (atualId && !window.confirm("Limpar os dados deste paciente na tela? O histórico salvo não é apagado.")) return;
+    if (atualId && !window.confirm("Limpar os dados da venóclise deste paciente? A ficha e o histórico salvo não são apagados.")) return;
     setE(ENTRADA_INICIAL); setCfg(cfgPadrao);
+  };
+  const limparFicha = () => {
+    if (atualId && !window.confirm("Limpar a ficha deste paciente (peso, IG, tipagem)? O histórico salvo não é apagado.")) return;
+    setFicha(FICHA_INICIAL);
   };
   const salvarCfgPadrao = async (c: ConfigServico) => {
     setCfgPadrao(c);
@@ -220,7 +234,7 @@ export function App() {
 
   const titulo = "NeoW Venóclise";
   const tituloTela: Record<string, string> = {
-    lista: titulo, calc: "Cálculo de venóclise", ajustes: "Ajustes", novo: "Novo paciente",
+    lista: titulo, calc: ABAS.find((a) => a.id === aba)?.texto ?? "Paciente", ajustes: "Ajustes", novo: "Novo paciente",
     editar: "Editar paciente", hipo: "Hipoglicemia", refs: "Referências",
   };
   const mainRef = useRef<HTMLElement>(null);
@@ -228,6 +242,9 @@ export function App() {
   // Acessibilidade: ao trocar de tela, atualiza o título da aba e leva o foco ao conteúdo (leitor de tela).
   useEffect(() => {
     document.title = tela === "lista" ? titulo : `${tituloTela[tela]} · ${titulo}`;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tela, aba]);
+  useEffect(() => {
     if (primeira.current) { primeira.current = false; return; }
     mainRef.current?.focus({ preventScroll: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -269,7 +286,7 @@ export function App() {
             </button>
           )}
           <div className="flex items-center gap-3">
-            {tela === "calc" && <output className="num text-heading" aria-live="polite">{resumo}</output>}
+            {tela === "calc" && aba === "venoclise" && <output className="num text-heading" aria-live="polite">{resumo}</output>}
             {tela === "lista" && (
               <>
                 {comPin && <button type="button" onClick={() => void bloquear()} className="tap text-body-sm font-semibold" aria-label="Bloquear agora">Bloquear</button>}
@@ -312,42 +329,55 @@ export function App() {
         {tela === "refs" && <Referencias />}
         {tela === "hipo" && <Hipoglicemia pesoInicialG={hipoDeCalc ? (r.referencia?.pesoCalculoG ?? null) : null} />}
         {tela === "calc" && (
-          <Calculadora
-            e={eEfetiva}
-            r={r}
-            setE={setE}
-            cfg={cfg}
-            setCfg={setCfg}
-            diaAutomatico={diaAutomatico}
-            topo={
-              atual ? (
-                <div className="flex items-center justify-between gap-3 rounded-lg bg-surface border border-border shadow-card px-4 py-3">
-                  <div>
-                    <div className="text-heading">{atual.leito} · {atual.iniciais}</div>
-                    <div className="text-caption text-subtle">Salvo automaticamente neste aparelho</div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="num text-heading text-primary">{diaDoPaciente({ nascimento: atual.nascimento, entrada: e }, agora) != null ? `D${diaDoPaciente({ nascimento: atual.nascimento, entrada: e }, agora)}` : "—"}</div>
-                    <button type="button" onClick={() => setTela("editar")} className="tap rounded-sm bg-surface-2 border border-border px-3 text-body-sm font-semibold">Editar</button>
-                  </div>
+          <div className="space-y-4">
+            {atual ? (
+              <div className="flex items-center justify-between gap-3 rounded-lg bg-surface border border-border shadow-card px-4 py-3">
+                <div>
+                  <div className="text-heading">{atual.leito} · {atual.iniciais}</div>
+                  <div className="text-caption text-subtle">Salvo automaticamente neste aparelho</div>
                 </div>
-              ) : (
-                <div className="rounded-md border border-border bg-surface-2 px-3 py-2 text-body-sm text-muted">Cálculo rápido: nada é salvo no aparelho.</div>
-              )
-            }
-            onSalvarHistorico={atual ? (res) => void salvarHistorico(res) : undefined}
-            abaixo={
-              atual && (
-                <Historico
-                  registros={registros}
-                  onReusar={(reg) => setE({ ...reg.entrada, diaDeVida: e.diaDeVida })}
-                  onApagar={async (id) => { await cofre.apagarRegistro(id); setRegistros((l) => l.filter((x) => x.id !== id)); }}
+                <div className="flex items-center gap-3">
+                  <div className="num text-heading text-primary">{fichaEfetiva.diaDeVida != null ? `D${fichaEfetiva.diaDeVida}` : "—"}</div>
+                  <button type="button" onClick={() => setTela("editar")} className="tap rounded-sm bg-surface-2 border border-border px-3 text-body-sm font-semibold">Editar</button>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-md border border-border bg-surface-2 px-3 py-2 text-body-sm text-muted">Cálculo rápido: nada é salvo no aparelho.</div>
+            )}
+            <BarraAbas ativa={aba} onChange={setAba} />
+            <div role="tabpanel" id={idPainel(aba)} aria-labelledby={`aba-${aba}`} className="space-y-4">
+              {aba === "ficha" ? (
+                <FichaCompleta f={ficha} setF={setFicha} dia={fichaEfetiva.diaDeVida} diaAutomatico={diaAutomatico} onLimpar={limparFicha} />
+              ) : aba === "venoclise" ? (
+                <Calculadora
+                  e={eEfetiva}
+                  r={r}
+                  setE={setE}
+                  cfg={cfg}
+                  setCfg={setCfg}
+                  setFicha={setFicha}
+                  ficha={<FichaResumo f={ficha} setF={setFicha} dia={fichaEfetiva.diaDeVida} diaAutomatico={diaAutomatico} onAbrirFicha={() => setAba("ficha")} />}
+                  onSalvarHistorico={atual ? (res) => void salvarHistorico(res) : undefined}
+                  abaixo={
+                    atual && (
+                      <Historico
+                        registros={registros}
+                        onReusar={(reg) => setE(reg.entrada)}
+                        onApagar={async (id) => { await cofre.apagarRegistro(id); setRegistros((l) => l.filter((x) => x.id !== id)); }}
+                      />
+                    )
+                  }
+                  onLimpar={limpar}
+                  onHipoglicemia={() => { setHipoDeCalc(true); setTela("hipo"); }}
                 />
-              )
-            }
-            onLimpar={limpar}
-            onHipoglicemia={() => { setHipoDeCalc(true); setTela("hipo"); }}
-          />
+              ) : (
+                <>
+                  <FichaResumo f={ficha} setF={setFicha} dia={fichaEfetiva.diaDeVida} diaAutomatico={diaAutomatico} onAbrirFicha={() => setAba("ficha")} />
+                  <EmBreve aba={aba} />
+                </>
+              )}
+            </div>
+          </div>
         )}
       </main>
 

@@ -4,9 +4,9 @@ import type { Paciente } from "../db/modelos";
 import { parseNascimento, validarIdentificacao } from "../db/validacao";
 import { Card } from "./campos";
 
-export function diaDoPaciente(p: Pick<Paciente, "nascimento" | "entrada">, agora: Date): number | null {
+export function diaDoPaciente(p: Pick<Paciente, "nascimento" | "entrada" | "ficha">, agora: Date): number | null {
   const n = parseNascimento(p.nascimento);
-  return n ? calcularDiaDeVida(n, agora) : (p.entrada.diaDeVida ?? null);
+  return n ? calcularDiaDeVida(n, agora) : ((p.ficha ?? p.entrada).diaDeVida ?? null);
 }
 
 const dataHora = (t: number) =>
