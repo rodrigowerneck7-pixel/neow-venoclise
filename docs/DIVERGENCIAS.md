@@ -169,3 +169,19 @@ O prompt diz "+10 a 20%" (fototerapia) e "−10 a 20%" (asfixia/SDR/VM). Impleme
 - **Fora desse grupo (≥ 32 semanas e ≥ 1.500 g sem leite materno):** sem recomendação cadastrada, o médico escolhe.
 - **Livre demanda:** o Guia Alimentar do MS fala da amamentação. O app avisa se você marcar livre demanda com fórmula.
 - **Sem marcas.** A lista de leites do hospital ainda está pendente.
+
+---
+
+# Prescrição (módulo 5, 07/11/2026)
+
+## af) Prescrição completa — 🟡 sem modelo do serviço
+- **De onde vêm as linhas:** dieta, venóclise, antibiótico, fototerapia e suporte respiratório vêm prontos de cada aba, pelas mesmas funções que as abas usam. A Prescrição não calcula nada.
+- **Controles:** sem frequência padrão; o médico escolhe entre opções (ex.: 3/3 h).
+- **Cuidados:** são frases sem número (ex.: "cabeceira elevada", sem grau).
+- **Outras medicações:** texto livre, sem cálculo de dose.
+- **Ambiente:** se não for escolhido aqui, usa o da aba Venóclise (marcado como sugestão).
+- **Ordem padrão:** dieta → venóclise → medicações → suporte respiratório → fototerapia → ambiente → controles → cuidados → exames → outros. Dá para subir, descer e tirar itens.
+- **Antibiótico:** cada linha leva "— D2 de 5–7" quando há início e duração.
+- **Suporte respiratório:** a VM sai como "(parâmetros na evolução)", porque o app não registra os parâmetros.
+- **Cabeçalho:** data, peso, IG e dia de vida, sem leito nem iniciais.
+- **Pendente:** um modelo de prescrição do serviço (ordem e jeito de escrever).

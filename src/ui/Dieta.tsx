@@ -1,11 +1,9 @@
-import { useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
-import { avaliarDieta, LEITES, textoDieta, VIAS, type ContextoDieta, type DadosDieta, type Leite } from "../core/dieta";
+import { useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { LEITES, VIAS, type DadosDieta, type Leite } from "../core/dieta";
 import type { FichaRN } from "../core/ficha";
-import { contextoDaFicha } from "../core/internacao";
 import { fmt } from "../core/numeros";
-import { horasDeVida } from "../core/tempo";
-import { parseNascimento } from "../db/validacao";
 import { Card, Interruptor, NumInput, Segmentado } from "./campos";
+import { derivarDieta } from "./derivados";
 
 interface Props {
   d: DadosDieta;
@@ -28,22 +26,7 @@ export function Dieta({ d, setD, ficha, nascimento, agora, topo, pesoCalculoG, v
   const [copiado, setCopiado] = useState(false);
   const [limpar, setLimpar] = useState(false);
 
-  const rn = useMemo(() => contextoDaFicha(ficha), [ficha]);
-  const nasc = parseNascimento(nascimento);
-  const horas = nasc ? horasDeVida(nasc, agora) : null;
-  const pesoG = pesoCalculoG ?? rn.pesoAtualG ?? rn.pesoNascimentoG;
-  const origem = pesoCalculoG != null ? "da venóclise" : rn.pesoAtualG != null ? "atual" : rn.pesoNascimentoG != null ? "de nascimento" : null;
-  const c: ContextoDieta = {
-    pesoG,
-    pesoNascimentoG: rn.pesoNascimentoG,
-    igSemanas: rn.igSemanas,
-    igDias: rn.igDias,
-    pnaDias: horas != null ? Math.floor(horas / 24) : ficha.diaDeVida != null ? ficha.diaDeVida - 1 : null,
-    volumeTotalMlKgDia: venoclise.volumeTotalMlKgDia,
-    outrasInfusoesMlDia: venoclise.outrasInfusoesMlDia,
-  };
-  const r = avaliarDieta(d, c);
-  const texto = textoDieta(r, c);
+  const { c, r, pesoG, origem, texto } = derivarDieta(d, ficha, nascimento, agora, pesoCalculoG, venoclise);
   const humano = d.leite === "lm" || d.leite === "lhop";
   const levarValor = d.modo === "programada" ? (d.volumeMlKgDia ?? null) : d.modo === "zero" ? 0 : null;
 

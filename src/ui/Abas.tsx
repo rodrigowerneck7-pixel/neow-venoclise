@@ -64,7 +64,6 @@ export function BarraAbas({ ativa, onChange }: { ativa: Aba; onChange: (a: Aba) 
 }
 
 const EM_BREVE: Partial<Record<Aba, { fase: string; texto: string }>> = {
-  prescricao: { fase: "Fase 5", texto: "Prescrição completa juntando os setores: berço aquecido/incubadora, dieta, venóclise, medicações, fototerapia, controles e cuidados. Por enquanto, a prescrição da venóclise está na aba Venóclise." },
 };
 
 export function EmBreve({ aba }: { aba: Aba }) {

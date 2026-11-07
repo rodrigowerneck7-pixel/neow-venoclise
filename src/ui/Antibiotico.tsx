@@ -2,7 +2,6 @@ import { useMemo, useState, type Dispatch, type ReactNode, type SetStateAction }
 import {
   ADEQUAR,
   calcularDose,
-  cronograma,
   decidirInicio,
   doseFonteTexto,
   DURACOES,
@@ -10,7 +9,6 @@ import {
   fmtDataHora,
   reavaliar,
   resumoDose,
-  textoAntibiotico,
   type Conduta,
   type ContextoAtb,
   type DadosAntibiotico,
@@ -20,12 +18,13 @@ import {
 } from "../core/antibiotico";
 import { ANTIMICROBIANOS, DROGA, FONTE_DOSES, type DrogaId } from "../core/dados/antimicrobianos";
 import type { FichaRN } from "../core/ficha";
-import { contextoDaFicha, resumoInfeccioso, type DadosInternacao } from "../core/internacao";
+import { resumoInfeccioso, type DadosInternacao } from "../core/internacao";
 import { fmt } from "../core/numeros";
 import { horasDeVida } from "../core/tempo";
 import { parseNascimento } from "../db/validacao";
 import { Card, Chip, Interruptor, NumInput, Segmentado } from "./campos";
 import { avaliarColetas } from "./Internacao";
+import { derivarAntibiotico } from "./derivados";
 
 interface Props {
   d: DadosAntibiotico;
@@ -62,26 +61,13 @@ export function Antibiotico({ d, setD, ficha, nascimento, agora, topo, inter, di
   const [limpar, setLimpar] = useState(false);
   const [motivo, setMotivo] = useState("");
 
-  const rn = useMemo(() => contextoDaFicha(ficha), [ficha]);
+  const { rn, ctx, doses, crono, texto } = derivarAntibiotico(d, ficha, nascimento, agora, diureseMlKgH);
   const nasc = parseNascimento(nascimento);
   const horasAgora = nasc ? horasDeVida(nasc, agora) : null;
-  const pnaDias = horasAgora != null ? Math.floor(horasAgora / 24) : ficha.diaDeVida != null ? ficha.diaDeVida - 1 : null;
-  const ctx: ContextoAtb = {
-    igSemanas: rn.igSemanas,
-    igDias: rn.igDias,
-    pesoG: rn.pesoAtualG ?? rn.pesoNascimentoG,
-    pesoOrigem: rn.pesoAtualG != null ? "atual" : rn.pesoNascimentoG != null ? "nascimento" : null,
-    pnaDias,
-    creatinina: d.creatinina ?? null,
-    diureseMlKgH,
-  };
-  const doses = d.drogas.map((x) => calcularDose(x.droga, x.tabela, ctx, x));
-  const inicio = parseNascimento(d.inicio ?? null);
-  const crono = inicio ? cronograma(inicio, agora, d.duracao) : null;
+  const pnaDias = ctx.pnaDias;
   const ini = decidirInicio({ igSemanas: rn.igSemanas, horasDeVida: horasAgora, d });
   const reav = reavaliar(d);
   const info = useMemo(() => resumoInfeccioso(avaliarColetas(inter, rn, nascimento)), [inter, rn, nascimento]);
-  const texto = textoAntibiotico({ inicio, agora, doses, duracao: d.duracao, historico: d.historico });
 
   const setDroga = (i: number, p: Partial<DrogaNoEsquema>) => setD((x) => ({ ...x, drogas: x.drogas.map((g, j) => (j === i ? { ...g, ...p } : g)) }));
   const addDroga = (id: DrogaId) => setD((x) => (x.drogas.some((g) => g.droga === id) ? x : { ...x, drogas: [...x.drogas, { droga: id, tabela: DROGA[id].tabelas[0].id }] }));

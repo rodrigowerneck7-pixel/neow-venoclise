@@ -7,7 +7,7 @@ import { cofre } from "../db/instancia";
 import { novoId } from "../db/cofre";
 import { PREFERENCIAS_PADRAO, type EstadoCofre, type Paciente, type Preferencias, type Registro } from "../db/modelos";
 import { parseNascimento } from "../db/validacao";
-import { FICHA_INICIAL, aplicarFicha, fichaDeEntrada, type FichaRN } from "../core/ficha";
+import { FICHA_INICIAL, aplicarFicha, fichaDeEntrada, igTexto, type FichaRN } from "../core/ficha";
 import { ABAS, BarraAbas, EmBreve, idPainel, type Aba } from "./Abas";
 import { Ajustes } from "./Ajustes";
 import { FichaCompleta, FichaResumo } from "./Ficha";
@@ -19,6 +19,10 @@ import { ATB_INICIAL, type DadosAntibiotico } from "../core/antibiotico";
 import { Antibiotico } from "./Antibiotico";
 import { DIETA_INICIAL, type DadosDieta } from "../core/dieta";
 import { Dieta } from "./Dieta";
+import { AMBIENTE_DA_VENOCLISE, PRESCRICAO_INICIAL, textoRespiratorio, type DadosPrescricao, type Fontes } from "../core/prescricao";
+import { contextoDaFicha } from "../core/internacao";
+import { Prescricao } from "./Prescricao";
+import { derivarAntibiotico, derivarDieta, derivarIctericia } from "./derivados";
 import { Bloqueio } from "./Bloqueio";
 import { Calculadora, ENTRADA_INICIAL } from "./Calculadora";
 import { Historico } from "./Historico";
@@ -44,6 +48,7 @@ export function App() {
   const [inter, setInterRaw] = useState<DadosInternacao>(INTERNACAO_INICIAL);
   const [atb, setAtbRaw] = useState<DadosAntibiotico>(ATB_INICIAL);
   const [dieta, setDietaRaw] = useState<DadosDieta>(DIETA_INICIAL);
+  const [presc, setPrescRaw] = useState<DadosPrescricao>(PRESCRICAO_INICIAL);
   const [cfg, setCfgRaw] = useState<ConfigServico>(CONFIG_PADRAO);
   const [prefs, setPrefs] = useState<Preferencias>(PREFERENCIAS_PADRAO);
   const [persistente, setPersistente] = useState<boolean | null>(null);
@@ -56,8 +61,8 @@ export function App() {
 
   // ---- rascunho do paciente: salva sozinho (debounce) quando algo muda
   const sujo = useRef(false);
-  const refs = useRef({ atualId, e, cfg, ficha, ict, inter, atb, dieta, pacientes });
-  refs.current = { atualId, e, cfg, ficha, ict, inter, atb, dieta, pacientes };
+  const refs = useRef({ atualId, e, cfg, ficha, ict, inter, atb, dieta, presc, pacientes });
+  refs.current = { atualId, e, cfg, ficha, ict, inter, atb, dieta, presc, pacientes };
   const persistenciaPedida = useRef(false);
 
   const setE: Dispatch<SetStateAction<EntradaVenoclise>> = useCallback((v) => { sujo.current = true; setEraw(v); }, []);
@@ -67,14 +72,15 @@ export function App() {
   const setInter: Dispatch<SetStateAction<DadosInternacao>> = useCallback((v) => { sujo.current = true; setInterRaw(v); }, []);
   const setAtb: Dispatch<SetStateAction<DadosAntibiotico>> = useCallback((v) => { sujo.current = true; setAtbRaw(v); }, []);
   const setDieta: Dispatch<SetStateAction<DadosDieta>> = useCallback((v) => { sujo.current = true; setDietaRaw(v); }, []);
+  const setPresc: Dispatch<SetStateAction<DadosPrescricao>> = useCallback((v) => { sujo.current = true; setPrescRaw(v); }, []);
 
   const salvarAgora = useCallback(async () => {
-    const { atualId: id, e: ent, cfg: c, ficha: fi, ict: ic, inter: it, atb: ab, dieta: di, pacientes: ps } = refs.current;
+    const { atualId: id, e: ent, cfg: c, ficha: fi, ict: ic, inter: it, atb: ab, dieta: di, presc: pr, pacientes: ps } = refs.current;
     if (!id || !sujo.current) return;
     const p = ps.find((x) => x.id === id);
     if (!p) return;
     sujo.current = false;
-    const novo: Paciente = { ...p, entrada: ent, cfg: c, ficha: fi, ictericia: ic, internacao: it, antibiotico: ab, dieta: di, atualizadoEm: Date.now() };
+    const novo: Paciente = { ...p, entrada: ent, cfg: c, ficha: fi, ictericia: ic, internacao: it, antibiotico: ab, dieta: di, prescricao: pr, atualizadoEm: Date.now() };
     await cofre.salvarPaciente(novo);
     setPacientes((l) => l.map((x) => (x.id === id ? novo : x)));
     if (!persistenciaPedida.current && navigator.storage?.persist) {
@@ -87,7 +93,7 @@ export function App() {
     if (!sujo.current || !atualId) return;
     const t = setTimeout(() => void salvarAgora(), 600);
     return () => clearTimeout(t);
-  }, [e, cfg, ficha, ict, inter, atb, dieta, atualId, salvarAgora]);
+  }, [e, cfg, ficha, ict, inter, atb, dieta, presc, atualId, salvarAgora]);
 
   // ---- carga inicial
   const carregarLista = useCallback(async () => {
@@ -124,7 +130,7 @@ export function App() {
     await salvarAgora();
     cofre.bloquear();
     setPacientes([]); setRegistros([]); setAtualId(null);
-    setEraw(ENTRADA_INICIAL); setCfgRaw(cfgPadrao); setFichaRaw(FICHA_INICIAL); setIctRaw(ICTERICIA_INICIAL); setInterRaw(INTERNACAO_INICIAL); setAtbRaw(ATB_INICIAL); setDietaRaw(DIETA_INICIAL);
+    setEraw(ENTRADA_INICIAL); setCfgRaw(cfgPadrao); setFichaRaw(FICHA_INICIAL); setIctRaw(ICTERICIA_INICIAL); setInterRaw(INTERNACAO_INICIAL); setAtbRaw(ATB_INICIAL); setDietaRaw(DIETA_INICIAL); setPrescRaw(PRESCRICAO_INICIAL);
     sujo.current = false;
     setTela("lista");
     setEstado("bloqueado");
@@ -168,6 +174,46 @@ export function App() {
   const fichaEfetiva = useMemo<FichaRN>(() => (diaAuto != null ? { ...ficha, diaDeVida: diaAuto } : ficha), [ficha, diaAuto]);
   const eEfetiva = useMemo<EntradaVenoclise>(() => aplicarFicha(e, fichaEfetiva), [e, fichaEfetiva]);
   const r = useMemo(() => calcularVenoclise(eEfetiva, cfg), [eEfetiva, cfg]);
+
+  /** O que cada aba entrega para a prescrição (mesmos cálculos das abas). */
+  const fontesPrescricao = (): { fontes: Fontes; cabecalho: string } => {
+    const nasc = atual?.nascimento ?? null;
+    const di = derivarDieta(dieta, fichaEfetiva, nasc, agora, r.referencia?.pesoCalculoG ?? null, {
+      volumeTotalMlKgDia: e.volumeMlKgDia ?? null,
+      outrasInfusoesMlDia: e.outrasInfusoesMlDia ?? null,
+      dietaMlKgDia: e.dietaEnteralMlKgDia ?? null,
+    });
+    const at = derivarAntibiotico(atb, fichaEfetiva, nasc, agora, e.diureseMlKgH ?? null);
+    const du = at.crono?.duracao ? (at.crono.duracao.dias[0] === at.crono.duracao.dias[1] ? `${at.crono.duracao.dias[0]}` : `${at.crono.duracao.dias[0]}–${at.crono.duracao.dias[1]}`) : null;
+    const semDose = at.doses.find((x) => !x.prescricao);
+    const ic = derivarIctericia(ict, fichaEfetiva, nasc);
+    const temVeno = e.volumeMlKgDia != null || e.tig != null;
+    const fontes: Fontes = {
+      dieta: di.r.prescricao ? { texto: di.r.prescricao } : dieta.modo ? { pendente: di.r.pendencias[0] ?? "Complete na aba Dieta" } : undefined,
+      venoclise: r.prescricaoTexto
+        ? { texto: `Venóclise: ${r.prescricaoTexto}` }
+        : temVeno
+          ? { pendente: r.pendencias[0] ?? r.alertas.find((a) => a.bloqueia)?.titulo ?? "Complete na aba Venóclise" }
+          : undefined,
+      antibioticos: {
+        linhas: at.doses.filter((x) => x.prescricao).map((x) => `${x.prescricao}${at.crono?.dia ? ` — D${at.crono.dia}${du ? ` de ${du}` : ""}` : ""}`),
+        pendente: semDose ? `${semDose.droga.nome}: ${semDose.pendencias[0] ?? "complete a dose"}` : undefined,
+      },
+      fototerapia: ic.prescricaoTexto ? { texto: ic.prescricaoTexto } : ict.emFototerapia ? { pendente: "Escolha simples, dupla ou quádrupla na aba Icterícia" } : undefined,
+      respiratorio: textoRespiratorio(inter.suporte, inter.fio2),
+      ambienteVenoclise: e.ambiente ? AMBIENTE_DA_VENOCLISE[e.ambiente] : null,
+    };
+    const rn = contextoDaFicha(fichaEfetiva);
+    const peso = rn.pesoAtualG ?? rn.pesoNascimentoG;
+    const p2 = (n: number) => String(n).padStart(2, "0");
+    const cab = [
+      `Prescrição — ${p2(agora.getDate())}/${p2(agora.getMonth() + 1)}/${agora.getFullYear()}`,
+      peso != null ? `${fmt(peso, 0)} g` : null,
+      igTexto(fichaEfetiva),
+      fichaEfetiva.diaDeVida != null ? `D${fichaEfetiva.diaDeVida}` : null,
+    ].filter(Boolean).join(" · ");
+    return { fontes, cabecalho: cab };
+  };
   const c = r.calculo;
   const resumo = c ? `${fmt(c.vazaoMlH, 1)} mL/h · ${fmt(c.concFinalRealPct, 1)}%` : "—";
 
@@ -176,14 +222,14 @@ export function App() {
     const p = pacientes.find((x) => x.id === id);
     if (!p) return;
     sujo.current = false;
-    setEraw(p.entrada); setCfgRaw(p.cfg); setFichaRaw(p.ficha ?? fichaDeEntrada(p.entrada)); setIctRaw(p.ictericia ?? ICTERICIA_INICIAL); setInterRaw(p.internacao ?? INTERNACAO_INICIAL); setAtbRaw(p.antibiotico ?? ATB_INICIAL); setDietaRaw(p.dieta ?? DIETA_INICIAL); setAtualId(id);
+    setEraw(p.entrada); setCfgRaw(p.cfg); setFichaRaw(p.ficha ?? fichaDeEntrada(p.entrada)); setIctRaw(p.ictericia ?? ICTERICIA_INICIAL); setInterRaw(p.internacao ?? INTERNACAO_INICIAL); setAtbRaw(p.antibiotico ?? ATB_INICIAL); setDietaRaw(p.dieta ?? DIETA_INICIAL); setPrescRaw(p.prescricao ?? PRESCRICAO_INICIAL); setAtualId(id);
     setRegistros(await cofre.listarRegistros(id));
     setAba("venoclise");
     setTela("calc");
   };
   const rapido = () => {
     sujo.current = false;
-    setAtualId(null); setRegistros([]); setEraw(ENTRADA_INICIAL); setCfgRaw(cfgPadrao); setFichaRaw(FICHA_INICIAL); setIctRaw(ICTERICIA_INICIAL); setInterRaw(INTERNACAO_INICIAL); setAtbRaw(ATB_INICIAL); setDietaRaw(DIETA_INICIAL);
+    setAtualId(null); setRegistros([]); setEraw(ENTRADA_INICIAL); setCfgRaw(cfgPadrao); setFichaRaw(FICHA_INICIAL); setIctRaw(ICTERICIA_INICIAL); setInterRaw(INTERNACAO_INICIAL); setAtbRaw(ATB_INICIAL); setDietaRaw(DIETA_INICIAL); setPrescRaw(PRESCRICAO_INICIAL);
     setAba("venoclise");
     setTela("calc");
   };
@@ -198,7 +244,7 @@ export function App() {
     await cofre.salvarPaciente(p);
     setPacientes((l) => [p, ...l]);
     sujo.current = false;
-    setEraw(p.entrada); setCfgRaw(p.cfg); setFichaRaw(FICHA_INICIAL); setIctRaw(ICTERICIA_INICIAL); setInterRaw(INTERNACAO_INICIAL); setAtbRaw(ATB_INICIAL); setDietaRaw(DIETA_INICIAL); setAtualId(p.id); setRegistros([]);
+    setEraw(p.entrada); setCfgRaw(p.cfg); setFichaRaw(FICHA_INICIAL); setIctRaw(ICTERICIA_INICIAL); setInterRaw(INTERNACAO_INICIAL); setAtbRaw(ATB_INICIAL); setDietaRaw(DIETA_INICIAL); setPrescRaw(PRESCRICAO_INICIAL); setAtualId(p.id); setRegistros([]);
     setAba("ficha");
     setTela("calc");
   };
@@ -436,6 +482,14 @@ export function App() {
                   venoclise={{ volumeTotalMlKgDia: e.volumeMlKgDia ?? null, outrasInfusoesMlDia: e.outrasInfusoesMlDia ?? null, dietaMlKgDia: e.dietaEnteralMlKgDia ?? null }}
                   onLevarDieta={(v) => setE((x) => ({ ...x, dietaEnteralMlKgDia: v }))}
                   onAbrirVenoclise={() => setAba("venoclise")}
+                />
+              ) : aba === "prescricao" ? (
+                <Prescricao
+                  d={presc}
+                  setD={setPresc}
+                  topo={<FichaResumo f={ficha} setF={setFicha} dia={fichaEfetiva.diaDeVida} diaAutomatico={diaAutomatico} onAbrirFicha={() => setAba("ficha")} />}
+                  {...fontesPrescricao()}
+                  onAbrirAba={setAba}
                 />
               ) : (
                 <>
