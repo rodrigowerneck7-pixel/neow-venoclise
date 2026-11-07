@@ -1,212 +1,307 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { CONFIG_PADRAO, calcularVenoclise } from "../core/calculo";
-import { PRESETS_CALCIO } from "../core/constantes";
 import { fmt } from "../core/numeros";
-import type { Alerta, ConfigServico, EntradaVenoclise } from "../core/tipos";
-import { Justificar, PainelAlertas } from "./Alertas";
-import { Resultado } from "./Resultado";
-import { Card, Deslizante, Interruptor, NumInput, Segmentado } from "./campos";
+import { calcularDiaDeVida } from "../core/tempo";
+import type { ConfigServico, EntradaVenoclise, ResultadoVenoclise } from "../core/tipos";
+import { cofre } from "../db/instancia";
+import { novoId } from "../db/cofre";
+import { PREFERENCIAS_PADRAO, type EstadoCofre, type Paciente, type Preferencias, type Registro } from "../db/modelos";
+import { parseNascimento } from "../db/validacao";
+import { Ajustes } from "./Ajustes";
+import { Bloqueio } from "./Bloqueio";
+import { Calculadora, ENTRADA_INICIAL } from "./Calculadora";
+import { Historico } from "./Historico";
+import { FormPaciente, ListaPacientes, diaDoPaciente } from "./Pacientes";
 
-const ENTRADA_INICIAL: EntradaVenoclise = {
-  pesoNascimento: null,
-  pesoAtual: null,
-  igSemanas: null,
-  igDias: null,
-  diaDeVida: 1,
-  volumeMlKgDia: null,
-  tig: null,
-};
+type Tela = "lista" | "calc" | "ajustes" | "novo" | "editar";
 
 export function App() {
-  const [e, setE] = useState<EntradaVenoclise>(ENTRADA_INICIAL);
-  const [cfg, setCfg] = useState<ConfigServico>(CONFIG_PADRAO);
-  const set = (p: Partial<EntradaVenoclise>) => setE((x) => ({ ...x, ...p }));
-  const setLab = (p: NonNullable<EntradaVenoclise["labs"]>) => setE((x) => ({ ...x, labs: { ...x.labs, ...p } }));
+  const [carregando, setCarregando] = useState(true);
+  const [estado, setEstado] = useState<EstadoCofre>("sem_pin");
+  const [tela, setTela] = useState<Tela>("lista");
+  const [pacientes, setPacientes] = useState<Paciente[]>([]);
+  const [atualId, setAtualId] = useState<string | null>(null);
+  const [registros, setRegistros] = useState<Registro[]>([]);
+  const [e, setEraw] = useState<EntradaVenoclise>(ENTRADA_INICIAL);
+  const [cfg, setCfgRaw] = useState<ConfigServico>(CONFIG_PADRAO);
+  const [prefs, setPrefs] = useState<Preferencias>(PREFERENCIAS_PADRAO);
+  const [persistente, setPersistente] = useState<boolean | null>(null);
+  const [agora, setAgora] = useState(() => new Date());
+  const [aviso, setAviso] = useState<string | null>(null);
 
-  const r = useMemo(() => calcularVenoclise(e, cfg), [e, cfg]);
-  const ref = r.referencia;
-  const faixaVol = ref?.volume.status === "ok" ? ref.volume.ajustada : null;
-  const faixaTig = ref?.tig ?? null;
-  const c = r.calculo;
+  // ---- rascunho do paciente: salva sozinho (debounce) quando algo muda
+  const sujo = useRef(false);
+  const refs = useRef({ atualId, e, cfg, pacientes });
+  refs.current = { atualId, e, cfg, pacientes };
+  const persistenciaPedida = useRef(false);
 
-  const acoes = (a: Alerta) => {
-    switch (a.id) {
-      case "peso-nasc-kg":
-        return <BotaoAlerta onClick={() => set({ confirmouKg: { ...e.confirmouKg, nascimento: true } })}>Sim, é kg</BotaoAlerta>;
-      case "peso-atual-kg":
-        return <BotaoAlerta onClick={() => set({ confirmouKg: { ...e.confirmouKg, atual: true } })}>Sim, é kg</BotaoAlerta>;
-      case "variacao-peso":
-        return <BotaoAlerta onClick={() => set({ confirmouVariacaoPeso: true })}>Pesos conferidos</BotaoAlerta>;
-      case "volume-fora":
-      case "volume-todo":
-        return <Justificar rotulo="Confirmar volume fora da diretriz" onConfirmar={(t) => set({ foraDaFaixa: { ...e.foraDaFaixa, volume: { confirmado: true, justificativa: t } } })} />;
-      case "tig-fora":
-        return <Justificar rotulo="Confirmar TIG fora da faixa" onConfirmar={(t) => set({ foraDaFaixa: { ...e.foraDaFaixa, tig: { confirmado: true, justificativa: t } } })} />;
-      case "na-d1":
-        return <Justificar rotulo="Confirmar Na no D1" onConfirmar={(t) => set({ overrideSodioD1: { justificativa: t } })} />;
-      case "glicemia-hipo":
-        return <div className="text-caption text-subtle mt-1">A tela de hipoglicemia chega na Fase 4.</div>;
-      default:
-        return null;
+  const setE: Dispatch<SetStateAction<EntradaVenoclise>> = useCallback((v) => { sujo.current = true; setEraw(v); }, []);
+  const setCfg: Dispatch<SetStateAction<ConfigServico>> = useCallback((v) => { sujo.current = true; setCfgRaw(v); }, []);
+
+  const salvarAgora = useCallback(async () => {
+    const { atualId: id, e: ent, cfg: c, pacientes: ps } = refs.current;
+    if (!id || !sujo.current) return;
+    const p = ps.find((x) => x.id === id);
+    if (!p) return;
+    sujo.current = false;
+    const novo: Paciente = { ...p, entrada: ent, cfg: c, atualizadoEm: Date.now() };
+    await cofre.salvarPaciente(novo);
+    setPacientes((l) => l.map((x) => (x.id === id ? novo : x)));
+    if (!persistenciaPedida.current && navigator.storage?.persist) {
+      persistenciaPedida.current = true;
+      navigator.storage.persist().then(setPersistente).catch(() => {});
     }
+  }, []);
+
+  useEffect(() => {
+    if (!sujo.current || !atualId) return;
+    const t = setTimeout(() => void salvarAgora(), 600);
+    return () => clearTimeout(t);
+  }, [e, cfg, atualId, salvarAgora]);
+
+  // ---- carga inicial
+  const carregarLista = useCallback(async () => {
+    setPacientes(await cofre.listarPacientes());
+  }, []);
+
+  const iniciar = useCallback(async () => {
+    const est = await cofre.iniciar();
+    await cofre.limpezaAutomatica();
+    setPrefs(await cofre.preferencias());
+    setEstado(est);
+    if (est !== "bloqueado") await carregarLista();
+    setCarregando(false);
+    navigator.storage?.persisted?.().then(setPersistente).catch(() => setPersistente(false));
+  }, [carregarLista]);
+
+  useEffect(() => { void iniciar(); }, [iniciar]);
+
+  // relógio do dia de vida
+  useEffect(() => {
+    const t = setInterval(() => setAgora(new Date()), 60_000);
+    return () => clearInterval(t);
+  }, []);
+
+  // ---- bloqueio automático
+  const bloquear = useCallback(async () => {
+    if (cofre.estado() === "sem_pin") return;
+    await salvarAgora();
+    cofre.bloquear();
+    setPacientes([]); setRegistros([]); setAtualId(null);
+    setEraw(ENTRADA_INICIAL); setCfgRaw(CONFIG_PADRAO);
+    sujo.current = false;
+    setTela("lista");
+    setEstado("bloqueado");
+  }, [salvarAgora]);
+
+  useEffect(() => {
+    if (estado !== "aberto") return;
+    let ocultoEm: number | null = null;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const arma = () => {
+      clearTimeout(timer);
+      if (prefs.bloqueioMin > 0) timer = setTimeout(() => void bloquear(), prefs.bloqueioMin * 60_000);
+    };
+    const visib = () => {
+      if (document.visibilityState === "hidden") {
+        ocultoEm = Date.now();
+        void salvarAgora();
+        if (prefs.bloqueioMin === 0) void bloquear();
+      } else if (ocultoEm != null) {
+        if (Date.now() - ocultoEm >= prefs.bloqueioMin * 60_000) void bloquear();
+        ocultoEm = null;
+        arma();
+      }
+    };
+    const evs = ["pointerdown", "keydown", "input"] as const;
+    evs.forEach((n) => window.addEventListener(n, arma, { passive: true }));
+    document.addEventListener("visibilitychange", visib);
+    arma();
+    return () => {
+      clearTimeout(timer);
+      evs.forEach((n) => window.removeEventListener(n, arma));
+      document.removeEventListener("visibilitychange", visib);
+    };
+  }, [estado, prefs.bloqueioMin, bloquear, salvarAgora]);
+
+  // ---- derivados
+  const atual = pacientes.find((p) => p.id === atualId) ?? null;
+  const nascimento = parseNascimento(atual?.nascimento);
+  const diaAuto = nascimento ? calcularDiaDeVida(nascimento, agora) : null;
+  const diaAutomatico = diaAuto != null;
+  const eEfetiva = useMemo<EntradaVenoclise>(() => (diaAuto != null ? { ...e, diaDeVida: diaAuto } : e), [e, diaAuto]);
+  const r = useMemo(() => calcularVenoclise(eEfetiva, cfg), [eEfetiva, cfg]);
+  const c = r.calculo;
+  const resumo = c ? `${fmt(c.vazaoMlH, 1)} mL/h · ${fmt(c.concFinalRealPct, 1)}%` : "—";
+
+  // ---- ações
+  const abrir = async (id: string) => {
+    const p = pacientes.find((x) => x.id === id);
+    if (!p) return;
+    sujo.current = false;
+    setEraw(p.entrada); setCfgRaw(p.cfg); setAtualId(id);
+    setRegistros(await cofre.listarRegistros(id));
+    setTela("calc");
+  };
+  const rapido = () => {
+    sujo.current = false;
+    setAtualId(null); setRegistros([]); setEraw(ENTRADA_INICIAL); setCfgRaw(CONFIG_PADRAO);
+    setTela("calc");
+  };
+  const voltar = async () => {
+    await salvarAgora();
+    setAtualId(null); setRegistros([]);
+    setTela("lista");
+  };
+  const criar = async (v: { leito: string; iniciais: string; nascimento: string | null }) => {
+    const t = Date.now();
+    const p: Paciente = { id: novoId(), ...v, criadoEm: t, atualizadoEm: t, entrada: ENTRADA_INICIAL, cfg: CONFIG_PADRAO };
+    await cofre.salvarPaciente(p);
+    setPacientes((l) => [p, ...l]);
+    sujo.current = false;
+    setEraw(p.entrada); setCfgRaw(p.cfg); setAtualId(p.id); setRegistros([]);
+    setTela("calc");
+  };
+  const editar = async (v: { leito: string; iniciais: string; nascimento: string | null }) => {
+    if (!atual) return;
+    const p: Paciente = { ...atual, ...v, atualizadoEm: Date.now() };
+    await cofre.salvarPaciente(p);
+    setPacientes((l) => l.map((x) => (x.id === p.id ? p : x)));
+    setTela("calc");
+  };
+  const apagar = async () => {
+    if (!atualId) return;
+    await cofre.apagarPaciente(atualId);
+    setPacientes((l) => l.filter((x) => x.id !== atualId));
+    sujo.current = false;
+    setAtualId(null); setRegistros([]);
+    setTela("lista");
+  };
+  const salvarHistorico = async (res: ResultadoVenoclise) => {
+    if (!atualId || !res.calculo || !res.prescricaoTexto) return;
+    await salvarAgora();
+    const reg: Registro = {
+      id: novoId(), pacienteId: atualId, em: Date.now(), diaDeVida: eEfetiva.diaDeVida ?? 0,
+      vazaoMlH: res.calculo.vazaoMlH, concFinalRealPct: res.calculo.concFinalRealPct,
+      volumeMlKgDia: res.calculo.volumeTotalMlKgDia, tig: res.calculo.tig,
+      prescricaoTexto: res.prescricaoTexto, entrada: eEfetiva, cfg,
+    };
+    await cofre.salvarRegistro(reg);
+    setRegistros((l) => [reg, ...l]);
+    setAviso("Prescrição salva no histórico.");
+    setTimeout(() => setAviso(null), 3000);
+  };
+  const limpar = () => {
+    if (atualId && !window.confirm("Limpar os dados deste paciente na tela? O histórico salvo não é apagado.")) return;
+    setE(ENTRADA_INICIAL); setCfg(CONFIG_PADRAO);
+  };
+  const salvarPrefs = async (p: Preferencias) => {
+    setPrefs(p);
+    await cofre.salvarPreferencias(p);
   };
 
-  const resumo = c ? `${fmt(c.vazaoMlH, 1)} mL/h · ${fmt(c.concFinalRealPct, 1)}%` : "—";
+  if (carregando) return <div className="min-h-dvh bg-bg" />;
+  if (estado === "bloqueado") {
+    return (
+      <Bloqueio
+        onDesbloquear={async (pin) => {
+          const ok = await cofre.desbloquear(pin);
+          if (ok) {
+            setEstado("aberto");
+            await carregarLista();
+          }
+          return ok;
+        }}
+      />
+    );
+  }
+
+  const comPin = estado === "aberto";
+  const titulo = tela === "ajustes" ? "Ajustes" : tela === "novo" ? "Novo paciente" : "NeoW Venóclise";
 
   return (
     <div className="min-h-dvh bg-bg text-text pb-28">
       <header className="appbar-bg text-on-appbar sticky top-0 z-10 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] shadow-raised">
-        <div className="mx-auto max-w-xl flex items-center justify-between">
-          <h1 className="text-heading">NeoW Venóclise</h1>
-          <output className="num text-heading" aria-live="polite">{resumo}</output>
+        <div className="mx-auto max-w-xl flex items-center justify-between gap-3">
+          {tela === "lista" ? (
+            <h1 className="text-heading">{titulo}</h1>
+          ) : (
+            <button type="button" onClick={() => (tela === "calc" ? void voltar() : tela === "editar" ? setTela("calc") : setTela("lista"))} className="tap text-heading">
+              ‹ {tela === "calc" ? "Pacientes" : tela === "editar" ? "Voltar" : "Pacientes"}
+            </button>
+          )}
+          <div className="flex items-center gap-3">
+            {tela === "calc" && <output className="num text-heading" aria-live="polite">{resumo}</output>}
+            {tela === "lista" && (
+              <>
+                {comPin && <button type="button" onClick={() => void bloquear()} className="tap text-body-sm font-semibold" aria-label="Bloquear agora">Bloquear</button>}
+                <button type="button" onClick={() => setTela("ajustes")} className="tap text-body-sm font-semibold">Ajustes</button>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-xl space-y-4 px-4 pt-4">
-        <PainelAlertas alertas={r.alertas} acoes={acoes} />
+      <main className="mx-auto max-w-xl px-4 pt-4">
+        {aviso && <div role="status" className="mb-3 rounded-md border border-success bg-success-soft px-3 py-2 text-body-sm">{aviso}</div>}
 
-        <Card titulo="Paciente">
-          <div className="grid grid-cols-2 gap-3">
-            <NumInput rotulo="Peso de nascimento" unidade="g" valor={e.pesoNascimento} onChange={(v) => set({ pesoNascimento: v, confirmouKg: { ...e.confirmouKg, nascimento: false } })} />
-            <NumInput rotulo="Peso atual" unidade="g" valor={e.pesoAtual} onChange={(v) => set({ pesoAtual: v, confirmouKg: { ...e.confirmouKg, atual: false } })} ajuda={e.diaDeVida === 1 ? "Opcional no D1" : "Obrigatório"} />
-            <NumInput rotulo="IG (semanas)" valor={e.igSemanas} onChange={(v) => set({ igSemanas: v })} />
-            <NumInput rotulo="IG (dias)" valor={e.igDias} onChange={(v) => set({ igDias: v })} />
-            <NumInput rotulo="Dia de vida" valor={e.diaDeVida} onChange={(v) => set({ diaDeVida: v })} ajuda="D1 = primeiras 24 h" />
-          </div>
-          {ref && <p className="text-body-sm text-muted">{ref.grupo} · peso de cálculo {fmt(ref.pesoCalculoG, 0)} g ({ref.pesoUsado === "nascimento" ? "nascimento" : "atual"})</p>}
-        </Card>
-
-        <Card titulo="Contexto">
-          <Segmentado
-            rotulo="Ambiente"
-            valor={e.ambiente}
-            onChange={(v) => set({ ambiente: v })}
-            opcoes={[
-              { valor: "incubadora_umida", texto: "Incubadora umidificada" },
-              { valor: "incubadora_seca", texto: "Incubadora sem umidade" },
-              { valor: "berco_aquecido", texto: "Berço aquecido" },
-            ]}
+        {tela === "lista" && (
+          <ListaPacientes pacientes={pacientes} agora={agora} onAbrir={(id) => void abrir(id)} onNovo={() => setTela("novo")} onRapido={rapido} avisoPin={estado === "sem_pin" && pacientes.length > 0} />
+        )}
+        {tela === "novo" && <FormPaciente onSalvar={(v) => void criar(v)} onCancelar={() => setTela("lista")} />}
+        {tela === "editar" && atual && <FormPaciente inicial={atual} onSalvar={(v) => void editar(v)} onCancelar={() => setTela("calc")} onApagar={() => void apagar()} />}
+        {tela === "ajustes" && (
+          <Ajustes
+            estado={estado}
+            prefs={prefs}
+            persistente={persistente}
+            onPrefs={(p) => void salvarPrefs(p)}
+            onMudou={() => { setEstado(cofre.estado()); void carregarLista(); }}
+            onApagado={() => { setPacientes([]); setPrefs(PREFERENCIAS_PADRAO); setEstado("sem_pin"); setTela("lista"); }}
           />
-          <div className="flex flex-wrap gap-2">
-            <Interruptor rotulo="Fototerapia" ativo={!!e.fototerapia} onChange={(v) => set({ fototerapia: v })} />
-            <Interruptor rotulo="Asfixia / SDR / VM umidificada" ativo={!!e.asfixiaSdrVm} onChange={(v) => set({ asfixiaSdrVm: v })} />
-            <Interruptor rotulo="Sepse / doença aguda" ativo={!!e.sepseOuDoencaAguda} onChange={(v) => set({ sepseOuDoencaAguda: v })} />
-          </div>
-          <Segmentado
-            rotulo="Mãe recebeu MgSO₄?"
-            valor={e.maeMgSO4}
-            onChange={(v) => set({ maeMgSO4: v })}
-            opcoes={[{ valor: "sim", texto: "Sim" }, { valor: "nao", texto: "Não" }, { valor: "nao_sei", texto: "Não sei" }]}
+        )}
+        {tela === "calc" && (
+          <Calculadora
+            e={eEfetiva}
+            r={r}
+            setE={setE}
+            cfg={cfg}
+            setCfg={setCfg}
+            diaAutomatico={diaAutomatico}
+            topo={
+              atual ? (
+                <div className="flex items-center justify-between gap-3 rounded-lg bg-surface border border-border shadow-card px-4 py-3">
+                  <div>
+                    <div className="text-heading">{atual.leito} · {atual.iniciais}</div>
+                    <div className="text-caption text-subtle">Salvo automaticamente neste aparelho</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="num text-heading text-primary">{diaDoPaciente({ nascimento: atual.nascimento, entrada: e }, agora) != null ? `D${diaDoPaciente({ nascimento: atual.nascimento, entrada: e }, agora)}` : "—"}</div>
+                    <button type="button" onClick={() => setTela("editar")} className="tap rounded-sm bg-surface-2 border border-border px-3 text-body-sm font-semibold">Editar</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-md border border-border bg-surface-2 px-3 py-2 text-body-sm text-muted">Cálculo rápido: nada é salvo no aparelho.</div>
+              )
+            }
+            onSalvarHistorico={atual ? (res) => void salvarHistorico(res) : undefined}
+            abaixo={
+              atual && (
+                <Historico
+                  registros={registros}
+                  onReusar={(reg) => setE({ ...reg.entrada, diaDeVida: e.diaDeVida })}
+                  onApagar={async (id) => { await cofre.apagarRegistro(id); setRegistros((l) => l.filter((x) => x.id !== id)); }}
+                />
+              )
+            }
+            onLimpar={limpar}
           />
-          <Segmentado
-            rotulo="Urinou?"
-            valor={e.urinou}
-            onChange={(v) => set({ urinou: v })}
-            opcoes={[{ valor: "sim", texto: "Sim" }, { valor: "nao", texto: "Não" }, { valor: "nao_sei", texto: "Não sei" }]}
-          />
-          <div className="grid grid-cols-2 gap-3">
-            <NumInput rotulo="Diurese" unidade="mL/kg/h" valor={e.diureseMlKgH} onChange={(v) => set({ diureseMlKgH: v })} />
-            <NumInput rotulo="Dieta enteral" unidade="mL/kg/dia" valor={e.dietaEnteralMlKgDia} onChange={(v) => set({ dietaEnteralMlKgDia: v })} />
-            <NumInput rotulo="Outras infusões" unidade="mL/dia" valor={e.outrasInfusoesMlDia} onChange={(v) => set({ outrasInfusoesMlDia: v })} ajuda="Drogas, flush, ATB" />
-          </div>
-          <Segmentado
-            rotulo="Acesso venoso"
-            valor={e.acesso}
-            onChange={(v) => set({ acesso: v })}
-            opcoes={[{ valor: "periferico", texto: "Periférico" }, { valor: "picc", texto: "PICC" }, { valor: "cvu", texto: "CVU" }]}
-          />
-        </Card>
-
-        <Card titulo="Volume e glicose">
-          <div className="flex items-end justify-between gap-3">
-            <NumInput rotulo="Volume total" unidade="mL/kg/dia" valor={e.volumeMlKgDia} onChange={(v) => set({ volumeMlKgDia: v })} />
-            {faixaVol && <BotaoAlerta onClick={() => set({ volumeMlKgDia: Math.round((faixaVol.min + faixaVol.max) / 2) })}>Meio da faixa</BotaoAlerta>}
-          </div>
-          {faixaVol && (
-            <>
-              <Deslizante rotulo="Volume dentro da faixa" min={Math.floor(faixaVol.min)} max={Math.ceil(faixaVol.max)} passo={1} valor={e.volumeMlKgDia} onChange={(v) => set({ volumeMlKgDia: v })} />
-              <p className="text-body-sm text-muted">Faixa da diretriz: {fmt(faixaVol.min, 1)}–{fmt(faixaVol.max, 1)} mL/kg/dia</p>
-              {ref?.volume.status === "ok" && ref.volume.motivosAjuste.map((m) => <p key={m} className="text-caption text-subtle">{m}</p>)}
-            </>
-          )}
-          <div className="flex items-end justify-between gap-3">
-            <NumInput rotulo="TIG" unidade="mg/kg/min" valor={e.tig} onChange={(v) => set({ tig: v })} />
-            {ref && <BotaoAlerta onClick={() => set({ tig: ref.tigPadraoSugerido })}>Sugerida {fmt(ref.tigPadraoSugerido)}</BotaoAlerta>}
-          </div>
-          {faixaTig && (
-            <>
-              <Deslizante rotulo="TIG dentro da faixa" min={faixaTig.min} max={faixaTig.max} passo={0.5} valor={e.tig} onChange={(v) => set({ tig: v })} />
-              <p className="text-body-sm text-muted">Faixa recomendada: {fmt(faixaTig.min)}–{fmt(faixaTig.max)} mg/kg/min (máx. 12)</p>
-            </>
-          )}
-          <Segmentado
-            rotulo="Etapas"
-            valor={String(cfg.etapas)}
-            onChange={(v) => v && setCfg({ ...cfg, etapas: Number(v) as 1 | 2 | 4 })}
-            opcoes={[{ valor: "1", texto: "1 × 24 h" }, { valor: "2", texto: "2 × 12 h" }, { valor: "4", texto: "4 × 6 h" }]}
-          />
-          <Segmentado
-            rotulo="Tabela hídrica"
-            valor={cfg.fonteHidrica}
-            onChange={(v) => v && setCfg({ ...cfg, fonteHidrica: v })}
-            opcoes={[{ valor: "espghan", texto: "ESPGHAN/SBP" }, { valor: "ms", texto: "MS 2014" }]}
-          />
-        </Card>
-
-        <Card titulo="Aditivos">
-          <div>
-            <div className="text-body-sm text-muted mb-1">Gluconato de cálcio 10%</div>
-            <div className="flex flex-wrap gap-2 mb-2">
-              <Interruptor rotulo="Mãe diabética" ativo={!!e.calcio?.fatoresRisco?.maeDiabetica} onChange={(v) => set({ calcio: { ...e.calcio, fatoresRisco: { ...e.calcio?.fatoresRisco, maeDiabetica: v } } })} />
-              <Interruptor rotulo="PIG" ativo={!!e.calcio?.fatoresRisco?.pig} onChange={(v) => set({ calcio: { ...e.calcio, fatoresRisco: { ...e.calcio?.fatoresRisco, pig: v } } })} />
-              <Segmentado valor={e.calcio?.incluir == null ? null : e.calcio.incluir ? "sim" : "nao"} onChange={(v) => set({ calcio: { ...e.calcio, incluir: v == null ? null : v === "sim" } })} opcoes={[{ valor: "sim", texto: "Adicionar" }, { valor: "nao", texto: "Não adicionar" }]} />
-            </div>
-            <NumInput rotulo="Dose" unidade="mL/kg/dia" valor={e.calcio?.mlKgDia} placeholder={fmt(cfg.calcioMlKgDia)} onChange={(v) => set({ calcio: { ...e.calcio, mlKgDia: v } })} ajuda="Vazio = preset do serviço" />
-            <div className="flex flex-wrap gap-2 mt-2">
-              {Object.values(PRESETS_CALCIO).map((p) => (
-                <button key={p.rotulo} type="button" onClick={() => set({ calcio: { ...e.calcio, mlKgDia: p.mlKg } })} className="tap rounded-sm bg-surface-2 border border-border px-3 text-caption text-left">
-                  {p.rotulo}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="grid grid-cols-1 gap-3">
-            <NumInput rotulo="Magnésio" unidade="mEq/kg/dia" valor={e.magnesioMEqKgDia} placeholder={fmt(cfg.magnesioMEqKgDia)} onChange={(v) => set({ magnesioMEqKgDia: v })} ajuda="Vazio = sugestão do app (0 se a mãe recebeu MgSO₄)" />
-            <NumInput rotulo="Sódio" unidade="mEq/kg/dia" valor={e.sodioMEqKgDia} placeholder="0" onChange={(v) => set({ sodioMEqKgDia: v })} />
-            <NumInput rotulo="Potássio" unidade="mEq/kg/dia" valor={e.potassioMEqKgDia} placeholder="0" onChange={(v) => set({ potassioMEqKgDia: v })} />
-          </div>
-        </Card>
-
-        <details className="rounded-lg bg-surface border border-border shadow-card p-4">
-          <summary className="tap cursor-pointer text-eyebrow text-muted flex items-center">Laboratório (opcional)</summary>
-          <div className="mt-3 grid grid-cols-2 gap-3">
-            <NumInput rotulo="Glicemia" unidade="mg/dL" valor={e.labs?.glicemia} onChange={(v) => setLab({ glicemia: v })} />
-            <NumInput rotulo="Na" unidade="mmol/L" valor={e.labs?.na} onChange={(v) => setLab({ na: v })} />
-            <NumInput rotulo="K" unidade="mmol/L" valor={e.labs?.k} onChange={(v) => setLab({ k: v })} />
-            <NumInput rotulo="Ca total" unidade="mg/dL" valor={e.labs?.caTotal} onChange={(v) => setLab({ caTotal: v })} />
-            <NumInput rotulo="Ca iônico" unidade="mmol/L" valor={e.labs?.caIonico} onChange={(v) => setLab({ caIonico: v })} />
-            <NumInput rotulo="Mg" unidade="mg/dL" valor={e.labs?.mg} onChange={(v) => setLab({ mg: v })} />
-          </div>
-        </details>
-
-        <Resultado r={r} />
-
-        <button type="button" onClick={() => { setE(ENTRADA_INICIAL); }} className="tap w-full rounded-sm border border-border text-muted font-semibold">
-          Limpar tudo
-        </button>
+        )}
       </main>
 
       <footer className="fixed inset-x-0 bottom-0 bg-surface border-t border-border px-4 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] text-caption text-muted text-center">
         Ferramenta de apoio. Confira os cálculos. A decisão e a prescrição são do médico.
       </footer>
     </div>
-  );
-}
-
-function BotaoAlerta({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button type="button" onClick={onClick} className="tap shrink-0 rounded-sm bg-primary-soft text-primary border border-border px-3 text-body-sm font-semibold mt-1">
-      {children}
-    </button>
   );
 }
