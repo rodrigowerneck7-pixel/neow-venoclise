@@ -17,6 +17,8 @@ import { INTERNACAO_INICIAL, type DadosInternacao } from "../core/internacao";
 import { Internacao } from "./Internacao";
 import { ATB_INICIAL, type DadosAntibiotico } from "../core/antibiotico";
 import { Antibiotico } from "./Antibiotico";
+import { DIETA_INICIAL, type DadosDieta } from "../core/dieta";
+import { Dieta } from "./Dieta";
 import { Bloqueio } from "./Bloqueio";
 import { Calculadora, ENTRADA_INICIAL } from "./Calculadora";
 import { Historico } from "./Historico";
@@ -41,6 +43,7 @@ export function App() {
   const [ict, setIctRaw] = useState<DadosIctericia>(ICTERICIA_INICIAL);
   const [inter, setInterRaw] = useState<DadosInternacao>(INTERNACAO_INICIAL);
   const [atb, setAtbRaw] = useState<DadosAntibiotico>(ATB_INICIAL);
+  const [dieta, setDietaRaw] = useState<DadosDieta>(DIETA_INICIAL);
   const [cfg, setCfgRaw] = useState<ConfigServico>(CONFIG_PADRAO);
   const [prefs, setPrefs] = useState<Preferencias>(PREFERENCIAS_PADRAO);
   const [persistente, setPersistente] = useState<boolean | null>(null);
@@ -53,8 +56,8 @@ export function App() {
 
   // ---- rascunho do paciente: salva sozinho (debounce) quando algo muda
   const sujo = useRef(false);
-  const refs = useRef({ atualId, e, cfg, ficha, ict, inter, atb, pacientes });
-  refs.current = { atualId, e, cfg, ficha, ict, inter, atb, pacientes };
+  const refs = useRef({ atualId, e, cfg, ficha, ict, inter, atb, dieta, pacientes });
+  refs.current = { atualId, e, cfg, ficha, ict, inter, atb, dieta, pacientes };
   const persistenciaPedida = useRef(false);
 
   const setE: Dispatch<SetStateAction<EntradaVenoclise>> = useCallback((v) => { sujo.current = true; setEraw(v); }, []);
@@ -63,14 +66,15 @@ export function App() {
   const setIct: Dispatch<SetStateAction<DadosIctericia>> = useCallback((v) => { sujo.current = true; setIctRaw(v); }, []);
   const setInter: Dispatch<SetStateAction<DadosInternacao>> = useCallback((v) => { sujo.current = true; setInterRaw(v); }, []);
   const setAtb: Dispatch<SetStateAction<DadosAntibiotico>> = useCallback((v) => { sujo.current = true; setAtbRaw(v); }, []);
+  const setDieta: Dispatch<SetStateAction<DadosDieta>> = useCallback((v) => { sujo.current = true; setDietaRaw(v); }, []);
 
   const salvarAgora = useCallback(async () => {
-    const { atualId: id, e: ent, cfg: c, ficha: fi, ict: ic, inter: it, atb: ab, pacientes: ps } = refs.current;
+    const { atualId: id, e: ent, cfg: c, ficha: fi, ict: ic, inter: it, atb: ab, dieta: di, pacientes: ps } = refs.current;
     if (!id || !sujo.current) return;
     const p = ps.find((x) => x.id === id);
     if (!p) return;
     sujo.current = false;
-    const novo: Paciente = { ...p, entrada: ent, cfg: c, ficha: fi, ictericia: ic, internacao: it, antibiotico: ab, atualizadoEm: Date.now() };
+    const novo: Paciente = { ...p, entrada: ent, cfg: c, ficha: fi, ictericia: ic, internacao: it, antibiotico: ab, dieta: di, atualizadoEm: Date.now() };
     await cofre.salvarPaciente(novo);
     setPacientes((l) => l.map((x) => (x.id === id ? novo : x)));
     if (!persistenciaPedida.current && navigator.storage?.persist) {
@@ -83,7 +87,7 @@ export function App() {
     if (!sujo.current || !atualId) return;
     const t = setTimeout(() => void salvarAgora(), 600);
     return () => clearTimeout(t);
-  }, [e, cfg, ficha, ict, inter, atb, atualId, salvarAgora]);
+  }, [e, cfg, ficha, ict, inter, atb, dieta, atualId, salvarAgora]);
 
   // ---- carga inicial
   const carregarLista = useCallback(async () => {
@@ -120,7 +124,7 @@ export function App() {
     await salvarAgora();
     cofre.bloquear();
     setPacientes([]); setRegistros([]); setAtualId(null);
-    setEraw(ENTRADA_INICIAL); setCfgRaw(cfgPadrao); setFichaRaw(FICHA_INICIAL); setIctRaw(ICTERICIA_INICIAL); setInterRaw(INTERNACAO_INICIAL); setAtbRaw(ATB_INICIAL);
+    setEraw(ENTRADA_INICIAL); setCfgRaw(cfgPadrao); setFichaRaw(FICHA_INICIAL); setIctRaw(ICTERICIA_INICIAL); setInterRaw(INTERNACAO_INICIAL); setAtbRaw(ATB_INICIAL); setDietaRaw(DIETA_INICIAL);
     sujo.current = false;
     setTela("lista");
     setEstado("bloqueado");
@@ -172,14 +176,14 @@ export function App() {
     const p = pacientes.find((x) => x.id === id);
     if (!p) return;
     sujo.current = false;
-    setEraw(p.entrada); setCfgRaw(p.cfg); setFichaRaw(p.ficha ?? fichaDeEntrada(p.entrada)); setIctRaw(p.ictericia ?? ICTERICIA_INICIAL); setInterRaw(p.internacao ?? INTERNACAO_INICIAL); setAtbRaw(p.antibiotico ?? ATB_INICIAL); setAtualId(id);
+    setEraw(p.entrada); setCfgRaw(p.cfg); setFichaRaw(p.ficha ?? fichaDeEntrada(p.entrada)); setIctRaw(p.ictericia ?? ICTERICIA_INICIAL); setInterRaw(p.internacao ?? INTERNACAO_INICIAL); setAtbRaw(p.antibiotico ?? ATB_INICIAL); setDietaRaw(p.dieta ?? DIETA_INICIAL); setAtualId(id);
     setRegistros(await cofre.listarRegistros(id));
     setAba("venoclise");
     setTela("calc");
   };
   const rapido = () => {
     sujo.current = false;
-    setAtualId(null); setRegistros([]); setEraw(ENTRADA_INICIAL); setCfgRaw(cfgPadrao); setFichaRaw(FICHA_INICIAL); setIctRaw(ICTERICIA_INICIAL); setInterRaw(INTERNACAO_INICIAL); setAtbRaw(ATB_INICIAL);
+    setAtualId(null); setRegistros([]); setEraw(ENTRADA_INICIAL); setCfgRaw(cfgPadrao); setFichaRaw(FICHA_INICIAL); setIctRaw(ICTERICIA_INICIAL); setInterRaw(INTERNACAO_INICIAL); setAtbRaw(ATB_INICIAL); setDietaRaw(DIETA_INICIAL);
     setAba("venoclise");
     setTela("calc");
   };
@@ -194,7 +198,7 @@ export function App() {
     await cofre.salvarPaciente(p);
     setPacientes((l) => [p, ...l]);
     sujo.current = false;
-    setEraw(p.entrada); setCfgRaw(p.cfg); setFichaRaw(FICHA_INICIAL); setIctRaw(ICTERICIA_INICIAL); setInterRaw(INTERNACAO_INICIAL); setAtbRaw(ATB_INICIAL); setAtualId(p.id); setRegistros([]);
+    setEraw(p.entrada); setCfgRaw(p.cfg); setFichaRaw(FICHA_INICIAL); setIctRaw(ICTERICIA_INICIAL); setInterRaw(INTERNACAO_INICIAL); setAtbRaw(ATB_INICIAL); setDietaRaw(DIETA_INICIAL); setAtualId(p.id); setRegistros([]);
     setAba("ficha");
     setTela("calc");
   };
@@ -419,6 +423,19 @@ export function App() {
                   inter={inter}
                   diureseMlKgH={e.diureseMlKgH ?? null}
                   onAbrirInternacao={() => setAba("internacao")}
+                />
+              ) : aba === "dieta" ? (
+                <Dieta
+                  d={dieta}
+                  setD={setDieta}
+                  ficha={fichaEfetiva}
+                  nascimento={atual?.nascimento ?? null}
+                  agora={agora}
+                  topo={<FichaResumo f={ficha} setF={setFicha} dia={fichaEfetiva.diaDeVida} diaAutomatico={diaAutomatico} onAbrirFicha={() => setAba("ficha")} />}
+                  pesoCalculoG={r.referencia?.pesoCalculoG ?? null}
+                  venoclise={{ volumeTotalMlKgDia: e.volumeMlKgDia ?? null, outrasInfusoesMlDia: e.outrasInfusoesMlDia ?? null, dietaMlKgDia: e.dietaEnteralMlKgDia ?? null }}
+                  onLevarDieta={(v) => setE((x) => ({ ...x, dietaEnteralMlKgDia: v }))}
+                  onAbrirVenoclise={() => setAba("venoclise")}
                 />
               ) : (
                 <>

@@ -138,3 +138,34 @@ O prompt diz "+10 a 20%" (fototerapia) e "−10 a 20%" (asfixia/SDR/VM). Impleme
 ## ab) Escalonamento — 🔴 pendente
 - Não há fonte para as linhas de escalonamento (falha clínica sem cultura, sepse tardia).
 - O app mostra só o que a SBP diz: adequar pela cultura e pelo antibiograma; meningite por Gram-negativo → cefotaxima ou cefepima. O resto depende do protocolo do hospital/CCIH.
+
+---
+
+# Dieta (módulo 4, 07/11/2026)
+
+## ac) Progressão da dieta — ESPGHAN 2022 — 🟡 confirmar com o protocolo do serviço
+- A ESPGHAN 2022 vale para prematuros com **PN < 1.800 g**. Fora disso, volume e aumento são escolha do médico, sem alerta.
+- **Faixas usadas:**
+  - dieta mínima de 12–24 mL/kg/dia (opcional);
+  - aumento diário de 18–30 mL/kg/dia;
+  - volume-alvo de 150–180 mL/kg/dia (135 pode ser seguro; até 200 caso a caso);
+  - aditivo com 40–100 mL/kg/dia;
+  - via oral a partir de 32 semanas de IG pós-menstrual.
+- **A ESPGHAN pede que cada UTIN tenha seu protocolo.** Se o serviço tiver números próprios, eles podem substituir estes.
+- **Peso da conta:** o peso de cálculo da venóclise (mesma base de mL/kg). Sem ele, o peso atual ou o de nascimento.
+- **Intervalos:** só 2/2 h e 3/3 h (bolus). Dieta contínua não entrou.
+- **mL por mamada:** arredondado como na venóclise (0,1 mL; 0,01 mL abaixo de 10 mL).
+
+## ad) Transição dieta × venóclise — 🟡
+- **Conta:** venóclise = volume total − dieta − outras infusões, a mesma da aba Venóclise. O plano usa o volume total de hoje.
+- **O que não tem fonte:** o ponto de suspender a venóclise e o quanto baixar a TIG. O app só mostra quando a dieta cobre o volume total.
+- **TIG:** continua a escolhida na aba Venóclise. Com menos volume, a concentração de glicose sobe, e a venóclise avisa se passar do limite periférico.
+- **"Levar":** o botão só copia o volume de dieta de hoje para a venóclise. Nada muda sozinho.
+
+## ae) Leites — 🟡
+- **Hierarquia (ESPGHAN 2022):**
+  - leite materno da própria mãe é a 1ª escolha;
+  - sem ele, em < 32 semanas ou < 1.500 g, leite humano de banco com aditivo antes da fórmula para pré-termo.
+- **Fora desse grupo (≥ 32 semanas e ≥ 1.500 g sem leite materno):** sem recomendação cadastrada, o médico escolhe.
+- **Livre demanda:** o Guia Alimentar do MS fala da amamentação. O app avisa se você marcar livre demanda com fórmula.
+- **Sem marcas.** A lista de leites do hospital ainda está pendente.

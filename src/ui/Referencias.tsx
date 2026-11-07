@@ -194,6 +194,19 @@ export function Referencias() {
         </div>
         <p className="text-caption text-subtle">Fonte: {FONTE_DOSES}. IG = ao nascer; PMA = IG + dias de vida; PNA = dias de vida.</p>
       </Secao>
+      <Secao titulo="Dieta enteral — ESPGHAN 2022 (PN < 1.800 g)">
+        <ul className="list-disc pl-5 space-y-1">
+          <li>Leite materno da própria mãe é a 1ª escolha (pré-termo e termo). Sem leite materno suficiente, em &lt; 32 sem ou &lt; 1.500 g: leite humano de banco com aditivo antes da fórmula para pré-termo.</li>
+          <li>Começar pequenos volumes o quanto antes e aumentar conforme a tolerância. Dieta mínima (12–24 mL/kg/dia, sem aumentar, por 3–7 dias) não mostrou benefício claro.</li>
+          <li>Aumento diário de 18–30 mL/kg/dia no prematuro estável.</li>
+          <li>Volume da maioria: 150–180 mL/kg/dia; 135 pode ser seguro; até 200 caso a caso.</li>
+          <li>Aditivo multicomponente quando a dieta chega a 40–100 mL/kg/dia.</li>
+          <li>Bolus a cada 2–3 h; sonda oro ou nasogástrica sem preferência; não medir resíduo gástrico de rotina no RN estável.</li>
+          <li>Via oral a partir de 32 sem de IG pós-menstrual, guiada pela competência e estabilidade.</li>
+          <li>Cada UTIN deve ter protocolo próprio de progressão, aditivo e intolerância.</li>
+        </ul>
+        <p className="text-caption text-subtle">Fonte: Embleton ND et al. Enteral Nutrition in Preterm Infants (2022): ESPGHAN CoN position paper. JPGN 2023;76:248-268. Livre demanda: MS, Guia Alimentar para Crianças Brasileiras Menores de 2 Anos (versão resumida, 2021), p. 7.</p>
+      </Secao>
       <Secao titulo="Fontes">
         <ul className="list-disc pl-5 space-y-1">
           <li>ESPGHAN/ESPEN/ESPR/CSPEN 2018. Guidelines on pediatric parenteral nutrition (Jochum; Mesotten; Mihatsch). Clin Nutr 2018;37.</li>
@@ -205,6 +218,8 @@ export function Referencias() {
           <li>Brasil. Ministério da Saúde. Portaria GM/MS nº 930, de 10/05/2012 (redação da Portaria nº 3.389/2013).</li>
           <li>SBP. Sepse neonatal precoce e a abordagem do recém-nascido de risco. Documento Científico nº 11, 2022.</li>
           <li>SBP. Hipoglicemia neonatal. Documento Científico nº 16, 2022.</li>
+          <li>Embleton ND et al. Enteral Nutrition in Preterm Infants (2022): A Position Paper From the ESPGHAN Committee on Nutrition. J Pediatr Gastroenterol Nutr 2023;76:248-268.</li>
+          <li>Brasil. Ministério da Saúde. Guia Alimentar para Crianças Brasileiras Menores de 2 Anos — versão resumida, 2021.</li>
           <li>Doses dos antimicrobianos na neonatologia (PDF do serviço, atualizado pelo UpToDate 2025).</li>
           <li>Puopolo KM et al. Management of neonates born at ≥ 35 0/7 weeks / ≤ 34 6/7 weeks with suspected or proven early-onset bacterial sepsis. Pediatrics 2018 (citado pela SBP 2022).</li>
           <li>Rodwell RL, Leslie AL, Tudehope DI. Early diagnosis of neonatal sepsis using a hematologic scoring system. J Pediatr 1988;112:761-7.</li>

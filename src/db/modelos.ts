@@ -2,6 +2,7 @@ import type { FichaRN } from "../core/ficha";
 import type { DadosIctericia } from "../core/ictericia";
 import type { DadosInternacao } from "../core/internacao";
 import type { DadosAntibiotico } from "../core/antibiotico";
+import type { DadosDieta } from "../core/dieta";
 import type { ConfigServico, EntradaVenoclise } from "../core/tipos";
 
 /** Identificação mínima. NUNCA nome completo, prontuário ou CPF. */
@@ -22,6 +23,7 @@ export interface Paciente {
   ictericia?: DadosIctericia;
   internacao?: DadosInternacao;
   antibiotico?: DadosAntibiotico;
+  dieta?: DadosDieta;
 }
 
 /** Linha do histórico diário (uma prescrição salva). */

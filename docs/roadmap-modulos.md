@@ -17,6 +17,8 @@ interligados por **sugestão** (um módulo nunca muda o outro sozinho), terminan
 
 - Fase 3 (Antibiótico), 07/11/2026: iniciar ou não na sepse precoce (SBP 2022 Fig. 2 A e C para ≥ 35 sem; Fig. 3 para ≤ 34 sem), esquema escolhido pelo médico com dose em mg/UI pelas tabelas do PDF de doses (20 antimicrobianos, IG/PNA/PMA/peso/creatinina), aviso de quando a linha muda com os dias, lembrete renal com a diurese da venóclise, duração (Quadro 4 + PDF de doses) com D do antibiótico e fim previsto, reavaliação 36–48 h (Fig. 1) usando hemocultura/PCR/Rodwell da Internação, adequação pelas fontes, histórico de esquemas e texto para a prescrição. Leituras em DIVERGENCIAS y–ab.
 
+- Fase 4 (Dieta), 07/11/2026: livre demanda (MS, Guia Alimentar 2021), volume programado (leite, via, 2/2 ou 3/3 h, mL por mamada), aumento diário e meta com faixas da ESPGHAN 2022 para PN < 1.800 g, aditivo, hierarquia de leites, plano dia a dia da transição (venóclise = total − dieta − outras infusões) e botão para levar a dieta de hoje para a venóclise. Leituras em DIVERGENCIAS ac–ae.
+
 ## Decisões do Rodrigo
 - **Icterícia ≥ 35 semanas: AAP 2022** (Kemper et al., Pediatrics 2022;150(3):e2022058859). (07/11/2026)
 - **Fototerapia no serviço: simples, dupla e quádrupla.** Falta definir quando indicar cada uma; por ora o médico escolhe (DIVERGENCIAS q). (07/11/2026)
@@ -30,6 +32,6 @@ interligados por **sugestão** (um módulo nunca muda o outro sozinho), terminan
 - Protocolo de antibióticos do hospital: sepse tardia e linhas de escalonamento (DIVERGENCIAS ab). Doses já vêm do PDF do serviço (UpToDate 2025).
 - Diluições do serviço (para o app dar o volume em mL de cada antimicrobiano) e dose de cefotaxima.
 - Prescrição modelo anonimizada (formato/ordem dos itens).
-- Leites/fórmulas disponíveis no hospital.
+- Leites/fórmulas disponíveis no hospital e protocolo de progressão da dieta do serviço (a ESPGHAN pede um por UTIN).
 - PIN obrigatório ao cadastrar paciente?
 - Nome do app: manter "NeoW Venóclise" ou virar "NeoW"?
