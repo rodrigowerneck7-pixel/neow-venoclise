@@ -47,7 +47,7 @@ export function ConfigServico({ cfg, onSalvar }: { cfg: Cfg; onSalvar: (c: Cfg) 
         opcoes={[{ valor: "sg10", texto: "SG 10% (padrão)" }, { valor: "sg5", texto: "SG 5%" }]}
       />
       <div>
-        <div className="text-body-sm text-muted mb-1">Dose padrão de gluconato de cálcio 10%</div>
+        <div className="rotulo">Dose padrão de gluconato de cálcio 10%</div>
         <div className="flex flex-wrap gap-2">
           {Object.values(PRESETS_CALCIO).map((p) => (
             <button
@@ -55,7 +55,7 @@ export function ConfigServico({ cfg, onSalvar }: { cfg: Cfg; onSalvar: (c: Cfg) 
               type="button"
               onClick={() => set({ calcioMlKgDia: p.mlKg })}
               aria-pressed={d.calcioMlKgDia === p.mlKg}
-              className={`tap rounded-sm border px-3 text-caption text-left ${d.calcioMlKgDia === p.mlKg ? "bg-primary text-on-primary border-primary" : "bg-surface-2 border-border"}`}
+              className="chip text-caption"
             >
               {p.rotulo}
             </button>
@@ -82,20 +82,20 @@ export function ConfigServico({ cfg, onSalvar }: { cfg: Cfg; onSalvar: (c: Cfg) 
           type="button"
           disabled={!mudou || mgInvalido}
           onClick={() => (ampolaMudou ? setPasso("confirmando") : (onSalvar(d), setSalvo(true)))}
-          className="tap rounded-sm bg-primary text-on-primary px-4 font-semibold disabled:opacity-40"
+          className="btn btn-primary px-4"
         >
           Salvar padrões
         </button>
       ) : (
-        <div className="rounded-md border border-warning bg-warning-soft p-3 space-y-2">
+        <div className="rounded-xl border borda-atencao bg-warning-soft p-3 space-y-2">
           <p role="alert" className="text-body-sm">Você mudou as ampolas. Todas as contas de Mg, Na e K usarão: <strong>{rotulo(d)}</strong>. Prescrição errada de concentração é perigosa.</p>
           <label className="flex items-start gap-2 text-body-sm">
             <input type="checkbox" checked={ok} onChange={(e) => setOk(e.target.checked)} className="mt-1 size-5" />
             <span>Conferi: estas são as ampolas que existem na farmácia/unidade.</span>
           </label>
           <div className="grid grid-cols-2 gap-3">
-            <button type="button" onClick={() => setD(cfg)} className="tap rounded-sm bg-surface-2 border border-border font-semibold">Descartar</button>
-            <button type="button" disabled={!ok} onClick={() => { onSalvar(d); setPasso("editando"); setOk(false); setSalvo(true); }} className="tap rounded-sm bg-primary text-on-primary font-semibold disabled:opacity-40">Confirmar</button>
+            <button type="button" onClick={() => setD(cfg)} className="btn btn-neutro">Descartar</button>
+            <button type="button" disabled={!ok} onClick={() => { onSalvar(d); setPasso("editando"); setOk(false); setSalvo(true); }} className="btn btn-primary">Confirmar</button>
           </div>
         </div>
       )}

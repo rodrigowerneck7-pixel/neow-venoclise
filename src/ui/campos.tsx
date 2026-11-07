@@ -1,11 +1,12 @@
 import { useEffect, useId, useState, type ReactNode } from "react";
 import { parseNumeroBR } from "../core/numeros";
+import { IcCheck } from "./icones";
 
 export function Card({ titulo, extra, children }: { titulo: string; extra?: ReactNode; children: ReactNode }) {
   return (
-    <section className="rounded-lg bg-surface border border-border shadow-card p-4 space-y-3">
-      <div className="flex items-center justify-between gap-2">
-        <h2 className="text-eyebrow text-muted">{titulo}</h2>
+    <section className="card space-y-4">
+      <div className="flex items-center justify-between gap-2 min-h-6">
+        <h2 className="card-titulo">{titulo}</h2>
         {extra}
       </div>
       {children}
@@ -41,10 +42,10 @@ export function NumInput({
   }, [valor]);
   return (
     <div>
-      <label htmlFor={id} className="block text-body-sm text-muted mb-1">
+      <label htmlFor={id} className="rotulo">
         {rotulo}
       </label>
-      <div className="flex items-center rounded-sm bg-surface-2 border border-border focus-within:border-focus control-h px-3">
+      <div className="campo flex items-center">
         <input
           id={id}
           type="text"
@@ -57,30 +58,25 @@ export function NumInput({
             setTexto(ev.target.value);
             onChange(parse(ev.target.value));
           }}
-          className="num w-full bg-transparent outline-none text-input min-h-11 placeholder:text-subtle"
+          className="campo-interno num w-full min-w-0 bg-transparent outline-none text-input min-h-11"
         />
-        {unidade && <span className="text-body-sm text-muted pl-2 whitespace-nowrap">{unidade}</span>}
+        {unidade && <span className="text-body-sm text-subtle pl-2 whitespace-nowrap">{unidade}</span>}
       </div>
-      {ajuda && <p className="text-caption text-subtle mt-1">{ajuda}</p>}
+      {ajuda && <p className="text-caption text-subtle mt-1.5">{ajuda}</p>}
     </div>
   );
 }
 
-export function Chip({ ativo, onClick, children }: { ativo: boolean; onClick: () => void; children: ReactNode }) {
+export function Chip({ ativo, onClick, children, marca = false }: { ativo: boolean; onClick: () => void; children: ReactNode; marca?: boolean }) {
   return (
-    <button
-      type="button"
-      aria-pressed={ativo}
-      onClick={onClick}
-      className={`tap rounded-full px-4 text-body-sm font-semibold border transition-colors ${
-        ativo ? "bg-primary text-on-primary border-primary" : "bg-surface-2 text-text border-border"
-      }`}
-    >
+    <button type="button" aria-pressed={ativo} onClick={onClick} className="chip">
+      {marca && ativo && <IcCheck />}
       {children}
     </button>
   );
 }
 
+/** Poucas opções curtas viram trilho segmentado; muitas ou longas viram etiquetas. Tocar de novo desmarca. */
 export function Segmentado<T extends string>({
   rotulo,
   valor,
@@ -92,23 +88,35 @@ export function Segmentado<T extends string>({
   opcoes: ReadonlyArray<{ valor: T; texto: string }>;
   onChange: (v: T | null) => void;
 }) {
+  const trilho = opcoes.length >= 2 && opcoes.length <= 4 && opcoes.every((o) => o.texto.length <= 14) && opcoes.reduce((n, o) => n + o.texto.length, 0) <= 30;
+  const tocar = (v: T) => onChange(valor === v ? null : v);
   return (
     <div role="group" aria-label={rotulo}>
-      {rotulo && <div className="text-body-sm text-muted mb-1" aria-hidden>{rotulo}</div>}
-      <div className="flex flex-wrap gap-2">
-        {opcoes.map((o) => (
-          <Chip key={o.valor} ativo={valor === o.valor} onClick={() => onChange(valor === o.valor ? null : o.valor)}>
-            {o.texto}
-          </Chip>
-        ))}
-      </div>
+      {rotulo && <div className="rotulo" aria-hidden>{rotulo}</div>}
+      {trilho ? (
+        <div className="seg">
+          {opcoes.map((o) => (
+            <button key={o.valor} type="button" aria-pressed={valor === o.valor} onClick={() => tocar(o.valor)}>
+              {o.texto}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {opcoes.map((o) => (
+            <Chip key={o.valor} ativo={valor === o.valor} onClick={() => tocar(o.valor)}>
+              {o.texto}
+            </Chip>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 export function Interruptor({ rotulo, ativo, onChange }: { rotulo: string; ativo: boolean; onChange: (v: boolean) => void }) {
   return (
-    <Chip ativo={ativo} onClick={() => onChange(!ativo)}>
+    <Chip ativo={ativo} onClick={() => onChange(!ativo)} marca>
       {rotulo}
     </Chip>
   );

@@ -1,4 +1,5 @@
 import { useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { IcCheck, IcCopiar } from "./icones";
 import {
   ADEQUAR,
   calcularDose,
@@ -43,14 +44,14 @@ const EMPIRICOS: DrogaId[] = [...EMPIRICO_PRECOCE.betalactamicos, ...EMPIRICO_PR
 const SN = [{ valor: "sim" as const, texto: "Sim" }, { valor: "nao" as const, texto: "Não" }];
 
 const COR_CONDUTA: Record<string, string> = {
-  hc_atb: "bg-danger-soft border-danger",
-  completar: "bg-danger-soft border-danger",
-  sepse_clinica: "bg-danger-soft border-danger",
-  observacao: "bg-warning-soft border-warning",
-  monitorar_resp: "bg-warning-soft border-warning",
-  sem_atb_opcoes: "bg-success-soft border-success",
-  rotina: "bg-success-soft border-success",
-  suspender: "bg-success-soft border-success",
+  hc_atb: "bg-danger-soft borda-perigo",
+  completar: "bg-danger-soft borda-perigo",
+  sepse_clinica: "bg-danger-soft borda-perigo",
+  observacao: "bg-warning-soft borda-atencao",
+  monitorar_resp: "bg-warning-soft borda-atencao",
+  sem_atb_opcoes: "bg-success-soft borda-sucesso",
+  rotina: "bg-success-soft borda-sucesso",
+  suspender: "bg-success-soft borda-sucesso",
   fora: "bg-surface-2 border-border",
 };
 
@@ -106,7 +107,7 @@ export function Antibiotico({ d, setD, ficha, nascimento, agora, topo, inter, di
             Mais de 72 h de vida{horasAgora != null ? ` (${Math.floor(horasAgora)} h)` : ficha.diaDeVida != null ? ` (D${ficha.diaDeVida})` : ""}: os fluxogramas de sepse precoce não se aplicam. Sepse tardia segue o protocolo do serviço, que ainda não está cadastrado.
           </p>
         ) : ini.grupo == null ? (
-          ini.pendencias.map((p) => <p key={p} className="text-body-sm text-warning font-semibold">{p}</p>)
+          ini.pendencias.map((p) => <p key={p} className="aviso">{p}</p>)
         ) : (
           <>
             <p className="text-caption text-subtle">
@@ -179,20 +180,20 @@ export function Antibiotico({ d, setD, ficha, nascimento, agora, topo, inter, di
           </div>
         )}
         <label className="block">
-          <span className="block text-body-sm text-muted mb-1">Adicionar antimicrobiano</span>
+          <span className="rotulo">Adicionar antimicrobiano</span>
           <select
             value=""
             onChange={(ev) => { if (ev.target.value) addDroga(ev.target.value as DrogaId); }}
-            className="w-full rounded-sm bg-surface-2 border border-border px-3 text-input control-h"
+            className="campo"
           >
             <option value="">Escolher…</option>
             {ANTIMICROBIANOS.filter((x) => !d.drogas.some((g) => g.droga === x.id)).map((x) => <option key={x.id} value={x.id}>{x.nome}</option>)}
           </select>
         </label>
-        {info.liquorAlterado && <p className="text-body-sm text-warning font-semibold">Líquor fora da referência na Internação: veja as tabelas de meningite.</p>}
-        {info.hemoculturaPositiva && <p className="text-body-sm text-warning font-semibold">Hemocultura {info.hemocultura} na Internação: adequar ao agente e ao antibiograma.</p>}
+        {info.liquorAlterado && <p className="aviso">Líquor fora da referência na Internação: veja as tabelas de meningite.</p>}
+        {info.hemoculturaPositiva && <p className="aviso">Hemocultura {info.hemocultura} na Internação: adequar ao agente e ao antibiograma.</p>}
         <div>
-          <label className="block text-body-sm text-muted mb-1" htmlFor="atb-inicio">Início (1ª dose)</label>
+          <label className="rotulo" htmlFor="atb-inicio">Início (1ª dose)</label>
           <div className="flex gap-2">
             <input
               id="atb-inicio"
@@ -200,9 +201,9 @@ export function Antibiotico({ d, setD, ficha, nascimento, agora, topo, inter, di
               value={d.inicio ?? ""}
               max={isoLocal(agora)}
               onChange={(ev) => set({ inicio: ev.target.value || null })}
-              className="w-full rounded-sm bg-surface-2 border border-border px-3 text-input control-h min-w-0"
+              className="campo min-w-0"
             />
-            <button type="button" onClick={() => set({ inicio: isoLocal(agora) })} className="tap shrink-0 rounded-sm bg-primary-soft text-primary border border-border px-3 text-body-sm font-semibold">Agora</button>
+            <button type="button" onClick={() => set({ inicio: isoLocal(agora) })} className="btn btn-tonal shrink-0 px-3 text-body-sm">Agora</button>
           </div>
           <p className="text-caption text-subtle mt-1 num">
             Peso da dose: {ctx.pesoG != null ? `${fmt(ctx.pesoG, 0)} g (${ctx.pesoOrigem === "atual" ? "atual" : "nascimento"})` : "—"} · dias de vida: {pnaDias ?? "—"}
@@ -273,7 +274,7 @@ export function Antibiotico({ d, setD, ficha, nascimento, agora, topo, inter, di
           )}
           {reav.pendencias.length > 0 && <p className="text-body-sm text-muted">{reav.pendencias.join(" ")}</p>}
           {reav.conduta && <CondutaBox c={reav.conduta} />}
-          <button type="button" onClick={onAbrirInternacao} className="tap rounded-sm bg-primary-soft text-primary border border-border px-3 text-body-sm font-semibold">Lançar exames na Internação</button>
+          <button type="button" onClick={onAbrirInternacao} className="btn btn-tonal px-3 text-body-sm">Lançar exames na Internação</button>
         </Card>
       )}
 
@@ -288,10 +289,10 @@ export function Antibiotico({ d, setD, ficha, nascimento, agora, topo, inter, di
         {d.drogas.length > 0 && (
           <div className="space-y-2">
             <label className="block">
-              <span className="block text-body-sm text-muted mb-1">Motivo (suspensão, troca, alta)</span>
-              <input type="text" value={motivo} onChange={(ev) => setMotivo(ev.target.value)} className="w-full rounded-sm bg-surface-2 border border-border px-3 text-input control-h" />
+              <span className="rotulo">Motivo (suspensão, troca, alta)</span>
+              <input type="text" value={motivo} onChange={(ev) => setMotivo(ev.target.value)} className="campo" />
             </label>
-            <button type="button" onClick={() => { encerrar(); setMotivo(""); }} className="tap w-full rounded-sm border border-border font-semibold">
+            <button type="button" onClick={() => { encerrar(); setMotivo(""); }} className="btn btn-contorno w-full">
               Encerrar este esquema
             </button>
             <p className="text-caption text-subtle">Vai para o histórico abaixo; depois escolha o novo esquema, se houver.</p>
@@ -313,20 +314,20 @@ export function Antibiotico({ d, setD, ficha, nascimento, agora, topo, inter, di
           <button
             type="button"
             onClick={() => { void navigator.clipboard?.writeText(texto).then(() => { setCopiado(true); setTimeout(() => setCopiado(false), 2000); }); }}
-            className="tap w-full rounded-sm bg-primary text-on-primary font-semibold"
+            className="btn btn-primary w-full"
           >
-            {copiado ? "Copiado" : "Copiar"}
+            {copiado ? <><IcCheck />Copiado</> : <><IcCopiar />Copiar</>}
           </button>
         </Card>
       )}
 
       {limpar ? (
         <div className="grid grid-cols-2 gap-2">
-          <button type="button" onClick={() => setLimpar(false)} className="tap rounded-sm border border-border font-semibold">Cancelar</button>
-          <button type="button" onClick={() => { setD({ drogas: [], historico: [] }); setLimpar(false); }} className="tap rounded-sm bg-danger text-on-primary font-semibold">Apagar tudo do antibiótico</button>
+          <button type="button" onClick={() => setLimpar(false)} className="btn btn-contorno">Cancelar</button>
+          <button type="button" onClick={() => { setD({ drogas: [], historico: [] }); setLimpar(false); }} className="btn btn-perigo">Apagar tudo do antibiótico</button>
         </div>
       ) : (
-        <button type="button" onClick={() => setLimpar(true)} className="tap w-full rounded-sm border border-border text-muted font-semibold">Limpar antibiótico</button>
+        <button type="button" onClick={() => setLimpar(true)} className="btn btn-discreto w-full">Limpar antibiótico</button>
       )}
     </div>
   );
@@ -343,7 +344,7 @@ function Pergunta({ rotulo, valor, onChange, dica }: { rotulo: string; valor?: S
 
 function CondutaBox({ c, rotulo }: { c: Conduta; rotulo?: string }) {
   return (
-    <div className={`rounded-md border-l-4 border px-3 py-2 ${COR_CONDUTA[c.id] ?? "bg-surface-2 border-border"}`} aria-live="polite">
+    <div className={`rounded-xl border px-3 py-2 ${COR_CONDUTA[c.id] ?? "bg-surface-2 border-border"}`} aria-live="polite">
       {rotulo && <div className="text-caption text-muted">{rotulo}</div>}
       <div className="text-heading">{c.titulo}</div>
       <p className="text-body-sm">{c.texto}</p>
@@ -385,10 +386,10 @@ function DrogaCard({
   const mudaEm = r.mudaComPna != null && ctx.pnaDias != null && r.mudaComPna > ctx.pnaDias && nascimento ? new Date(nascimento.getTime() + r.mudaComPna * 86_400_000) : null;
 
   return (
-    <section className="rounded-lg bg-surface border border-border shadow-card p-4 space-y-3" aria-label={r.droga.nome}>
+    <section className="card space-y-3" aria-label={r.droga.nome}>
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-heading">{r.droga.nome}</h2>
-        <button type="button" onClick={onRemover} className="tap rounded-sm border border-border px-3 text-body-sm text-muted font-semibold">Tirar</button>
+        <button type="button" onClick={onRemover} className="btn btn-discreto px-3 text-body-sm">Tirar</button>
       </div>
       {r.droga.tabelas.length > 1 && (
         <Segmentado rotulo="Tabela do PDF" valor={g.tabela} opcoes={r.droga.tabelas.map((t) => ({ valor: t.id, texto: t.titulo }))} onChange={(v) => v && set({ tabela: v, porKg: null, cadaH: null, ataquePorKg: null })} />
@@ -398,7 +399,7 @@ function DrogaCard({
       {r.alertas.map((a) => <p key={a} className="text-body-sm text-danger font-semibold">{a}</p>)}
 
       {sp && (
-        <div className="rounded-md bg-surface-2 px-3 py-2">
+        <div className="rounded-xl bg-surface-2 px-3 py-2">
           <div className="num text-heading">{resumoDose(r)}</div>
           <div className="text-caption text-muted">{r.linha?.rotulo} · {doseFonteTexto(r)}{r.ataque ? ` · ataque ${Array.isArray(r.ataque.porKg) ? (r.ataque.porKg as number[]).map((v) => fmt(v, 2)).join("–") : fmt(r.ataque.porKg as number, 2)} ${un}/kg ${r.ataque.texto}` : ""}</div>
         </div>
@@ -407,7 +408,7 @@ function DrogaCard({
       {faixaH && <Segmentado rotulo="Intervalo" valor={g.cadaH != null ? String(g.cadaH) : null} opcoes={[...new Set(faixaH)].map((h) => ({ valor: String(h), texto: `${h}/${h} h` }))} onChange={(v) => set({ cadaH: v ? Number(v) : null })} />}
       {faixaAtaque && <NumInput rotulo={`Ataque escolhido (${un}/kg)`} valor={g.ataquePorKg} onChange={(v) => set({ ataquePorKg: v })} ajuda={`Faixa do PDF: ${fmt(faixaAtaque[0], 2)}–${fmt(faixaAtaque[1], 2)}`} />}
 
-      {r.pendencias.map((p) => <p key={p} className="text-body-sm text-warning font-semibold">{p}</p>)}
+      {r.pendencias.map((p) => <p key={p} className="aviso">{p}</p>)}
       {mudaEm && <p className="text-body-sm">A linha da tabela muda com {r.mudaComPna} dias de vida ({fmtDataHora(mudaEm).slice(0, 5)}): reveja a dose.</p>}
       {alternativas.map(({ t, x }) => (
         <p key={t.id} className="text-caption text-subtle">Pela tabela “{t.titulo}”: {resumoDose(x)} ({doseFonteTexto(x)}).</p>
@@ -417,14 +418,14 @@ function DrogaCard({
         <button
           type="button"
           onClick={() => { void navigator.clipboard?.writeText(r.prescricao ?? "").then(() => { setCopiado(true); setTimeout(() => setCopiado(false), 2000); }); }}
-          className="tap w-full rounded-sm bg-primary-soft text-primary border border-border text-left px-3 py-2 text-body-sm font-semibold"
+          className="btn btn-tonal w-full text-left px-3 py-2 text-body-sm"
         >
           {copiado ? "Copiado" : r.prescricao}
         </button>
       )}
 
       {r.notas.length > 0 && (
-        <details className="rounded-md border border-border px-3 py-2">
+        <details className="rounded-xl border border-border px-3 py-2">
           <summary className="tap cursor-pointer text-body-sm text-muted flex items-center">Notas do PDF</summary>
           <ul className="mt-2 space-y-1 text-body-sm list-disc pl-5">
             {r.notas.map((n) => <li key={n}>{n}</li>)}

@@ -1,4 +1,5 @@
 import { useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { IcCheck, IcCopiar } from "./icones";
 import type { FichaRN } from "../core/ficha";
 import { calcularIctericia, type DadosIctericia } from "../core/ictericia";
 import {
@@ -77,9 +78,9 @@ const quando = (em?: string | null) => {
 const minuscula = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 
 const COR: Record<Status, string> = {
-  alterado: "bg-danger-soft border-danger",
-  limitrofe: "bg-warning-soft border-warning",
-  normal: "bg-success-soft border-success",
+  alterado: "bg-danger-soft borda-perigo",
+  limitrofe: "bg-warning-soft borda-atencao",
+  normal: "bg-success-soft borda-sucesso",
   info: "bg-surface-2 border-border",
 };
 
@@ -138,7 +139,7 @@ export function Internacao({ d, setD, ficha, nascimento, agora, topo, ict, venoc
               <Sub>
                 <Segmentado rotulo="Suporte" valor={d.suporte} opcoes={SUPORTES} onChange={(v) => set({ suporte: v })} />
                 {d.suporte && d.suporte !== "ar" && <NumInput rotulo="FiO₂" unidade="%" valor={d.fio2} onChange={(v) => set({ fio2: v })} ajuda="Acima de 30% entra no critério de UTIN" />}
-                {d.fio2 != null && (d.fio2 < 21 || d.fio2 > 100) && <p className="text-body-sm text-warning font-semibold">FiO₂ entre 21 e 100%: confira o valor.</p>}
+                {d.fio2 != null && (d.fio2 < 21 || d.fio2 > 100) && <p className="aviso">FiO₂ entre 21 e 100%: confira o valor.</p>}
                 <div className="text-body-sm text-muted">Hipótese (você escolhe)</div>
                 <div className="flex flex-wrap gap-2">
                   {HIPOTESES_RESP.map((h) => (
@@ -179,7 +180,7 @@ export function Internacao({ d, setD, ficha, nascimento, agora, topo, ict, venoc
             {g.grupo === "Metabólico" && d.motivos.hipoglicemia && (
               <Sub>
                 <p className="text-body-sm">A glicemia entra em Exames. Bolus e TIG ficam na tela de hipoglicemia.</p>
-                <button type="button" onClick={onHipoglicemia} className="tap rounded-sm bg-primary-soft text-primary border border-border px-3 font-semibold">Abrir hipoglicemia</button>
+                <button type="button" onClick={onHipoglicemia} className="btn btn-tonal px-3">Abrir hipoglicemia</button>
               </Sub>
             )}
 
@@ -188,7 +189,7 @@ export function Internacao({ d, setD, ficha, nascimento, agora, topo, ict, venoc
                 <p className="text-body-sm">
                   {ict.bt != null ? `Aba Icterícia: BT ${fmt(ict.bt, 1)} mg/dL${ictR.zona ? ` — ${ZONA_TXT[ictR.zona]}` : ""}.` : "A bilirrubina e a fototerapia ficam na aba Icterícia."}
                 </p>
-                <button type="button" onClick={onAbrirIctericia} className="tap rounded-sm bg-primary-soft text-primary border border-border px-3 font-semibold">Abrir Icterícia</button>
+                <button type="button" onClick={onAbrirIctericia} className="btn btn-tonal px-3">Abrir Icterícia</button>
               </Sub>
             )}
 
@@ -216,12 +217,12 @@ export function Internacao({ d, setD, ficha, nascimento, agora, topo, ict, venoc
         ))}
 
         <label className="block">
-          <span className="block text-body-sm text-muted mb-1">Outro motivo</span>
+          <span className="rotulo">Outro motivo</span>
           <input
             type="text"
             value={d.outroMotivo ?? ""}
             onChange={(ev) => set({ outroMotivo: ev.target.value })}
-            className="w-full rounded-sm bg-surface-2 border border-border px-3 text-input control-h"
+            className="campo"
           />
         </label>
       </Card>
@@ -245,9 +246,9 @@ export function Internacao({ d, setD, ficha, nascimento, agora, topo, ict, venoc
         )}
       </Card>
 
-      <section className="rounded-lg bg-surface border border-border shadow-card p-4 space-y-3" aria-live="polite">
-        <h2 className="text-eyebrow text-muted">Nível de cuidado (Portaria 930/2012)</h2>
-        <div className={`rounded-md border-l-4 border px-3 py-2 ${nivel.sugerido === "UTIN" ? "bg-danger-soft border-danger" : nivel.sugerido ? "bg-warning-soft border-warning" : "bg-surface-2 border-border"}`}>
+      <section className="card space-y-3" aria-live="polite">
+        <h2 className="card-titulo">Nível de cuidado (Portaria 930/2012)</h2>
+        <div className={`rounded-xl border px-3 py-2 ${nivel.sugerido === "UTIN" ? "bg-danger-soft borda-perigo" : nivel.sugerido ? "bg-warning-soft borda-atencao" : "bg-surface-2 border-border"}`}>
           <div className="text-heading">{nivel.sugerido ? `Critérios de ${nivel.sugerido} presentes` : "Nenhum critério da Portaria marcado"}</div>
           <div className="text-caption text-muted">A Portaria lista critérios; onde internar é decisão do médico e do serviço.</div>
         </div>
@@ -260,7 +261,7 @@ export function Internacao({ d, setD, ficha, nascimento, agora, topo, ict, venoc
             ))}
           </ul>
         )}
-        {nivel.avisos.map((a) => <p key={a} className="text-body-sm text-warning font-semibold">{a}</p>)}
+        {nivel.avisos.map((a) => <p key={a} className="aviso">{a}</p>)}
         {nivel.pendencias.length > 0 && <p className="text-body-sm text-muted">Falta para avaliar: {nivel.pendencias.join("; ")}.</p>}
         <p className="text-caption text-subtle">Fonte: {FONTE_PORTARIA_930}.</p>
       </section>
@@ -268,7 +269,7 @@ export function Internacao({ d, setD, ficha, nascimento, agora, topo, ict, venoc
       <Card
         titulo="Exames"
         extra={
-          <button type="button" onClick={novaColeta} className="tap rounded-sm bg-primary text-on-primary px-3 text-body-sm font-semibold">
+          <button type="button" onClick={novaColeta} className="btn btn-primary px-3 text-body-sm">
             Nova coleta
           </button>
         }
@@ -300,19 +301,19 @@ export function Internacao({ d, setD, ficha, nascimento, agora, topo, ict, venoc
         <button
           type="button"
           onClick={() => { void navigator.clipboard?.writeText(texto).then(() => { setCopiado(true); setTimeout(() => setCopiado(false), 2000); }); }}
-          className="tap w-full rounded-sm bg-primary text-on-primary font-semibold"
+          className="btn btn-primary w-full"
         >
-          {copiado ? "Copiado" : "Copiar"}
+          {copiado ? <><IcCheck />Copiado</> : <><IcCopiar />Copiar</>}
         </button>
       </Card>
 
       {limpar ? (
         <div className="grid grid-cols-2 gap-2">
-          <button type="button" onClick={() => setLimpar(false)} className="tap rounded-sm border border-border font-semibold">Cancelar</button>
-          <button type="button" onClick={() => { setD({ motivos: {}, cuidados: {}, coletas: [] }); setLimpar(false); }} className="tap rounded-sm bg-danger text-on-primary font-semibold">Apagar tudo da internação</button>
+          <button type="button" onClick={() => setLimpar(false)} className="btn btn-contorno">Cancelar</button>
+          <button type="button" onClick={() => { setD({ motivos: {}, cuidados: {}, coletas: [] }); setLimpar(false); }} className="btn btn-perigo">Apagar tudo da internação</button>
         </div>
       ) : (
-        <button type="button" onClick={() => setLimpar(true)} className="tap w-full rounded-sm border border-border text-muted font-semibold">
+        <button type="button" onClick={() => setLimpar(true)} className="btn btn-discreto w-full">
           Limpar internação
         </button>
       )}
@@ -330,21 +331,21 @@ const ZONA_TXT = {
 } as const;
 
 function Sub({ children }: { children: ReactNode }) {
-  return <div className="rounded-md border border-border bg-surface-2 p-3 space-y-3">{children}</div>;
+  return <div className="rounded-xl border border-border bg-surface-2 p-3 space-y-3">{children}</div>;
 }
 
 function Sugestao({ texto, onClick }: { texto: string; onClick: () => void }) {
   return (
-    <div className="rounded-md border border-primary-2 bg-primary-soft px-3 py-2 text-body-sm flex items-center justify-between gap-3">
+    <div className="faixa">
       <span>{texto}</span>
-      <button type="button" onClick={onClick} className="tap shrink-0 rounded-sm bg-primary text-on-primary px-3 font-semibold">Marcar</button>
+      <button type="button" onClick={onClick} className="btn btn-primary shrink-0 px-3">Marcar</button>
     </div>
   );
 }
 
 function Grupo({ titulo, aberto, children }: { titulo: string; aberto: boolean; children: ReactNode }) {
   return (
-    <details className="rounded-md border border-border bg-surface-2 px-3 py-2" open={aberto}>
+    <details className="rounded-xl border border-border bg-surface-2 px-3 py-2" open={aberto}>
       <summary className="tap cursor-pointer text-body-sm font-semibold flex items-center">{titulo}</summary>
       <div className="mt-2 space-y-3 pb-1">{children}</div>
     </details>
@@ -378,24 +379,24 @@ function ColetaCard({
   const id = `coleta-${c.id}`;
 
   return (
-    <section className="rounded-lg bg-surface border border-border shadow-card p-4 space-y-3" aria-labelledby={`${id}-t`}>
+    <section className="card space-y-3" aria-labelledby={`${id}-t`}>
       <div className="flex items-center justify-between gap-2">
         <h2 id={`${id}-t`} className="text-eyebrow text-muted">
           Coleta · {quando(c.em)}{r.horas != null ? ` · ${Math.floor(r.horas)} h` : ""}
         </h2>
         {apagar ? (
           <span className="flex gap-2">
-            <button type="button" onClick={() => setApagar(false)} className="tap rounded-sm border border-border px-3 text-body-sm font-semibold">Não</button>
-            <button type="button" onClick={onApagar} className="tap rounded-sm bg-danger text-on-primary px-3 text-body-sm font-semibold">Apagar</button>
+            <button type="button" onClick={() => setApagar(false)} className="btn btn-contorno px-3 text-body-sm">Não</button>
+            <button type="button" onClick={onApagar} className="btn btn-perigo px-3 text-body-sm">Apagar</button>
           </span>
         ) : (
-          <button type="button" onClick={() => setApagar(true)} className="tap rounded-sm border border-border px-3 text-body-sm text-muted font-semibold">Apagar</button>
+          <button type="button" onClick={() => setApagar(true)} className="btn btn-discreto px-3 text-body-sm">Apagar</button>
         )}
       </div>
 
       {temNascimento ? (
         <div>
-          <label className="block text-body-sm text-muted mb-1" htmlFor={`${id}-em`}>Data e hora da coleta</label>
+          <label className="rotulo" htmlFor={`${id}-em`}>Data e hora da coleta</label>
           <div className="flex gap-2">
             <input
               id={`${id}-em`}
@@ -403,9 +404,9 @@ function ColetaCard({
               value={c.em ?? ""}
               max={isoLocal(agora)}
               onChange={(ev) => set({ em: ev.target.value || null })}
-              className="w-full rounded-sm bg-surface-2 border border-border px-3 text-input control-h min-w-0"
+              className="campo min-w-0"
             />
-            <button type="button" onClick={() => set({ em: isoLocal(agora) })} className="tap shrink-0 rounded-sm bg-primary-soft text-primary border border-border px-3 text-body-sm font-semibold">
+            <button type="button" onClick={() => set({ em: isoLocal(agora) })} className="btn btn-tonal shrink-0 px-3 text-body-sm">
               Agora
             </button>
           </div>
@@ -491,14 +492,14 @@ function ColetaCard({
             onChange={(ev) => set({ outros: ev.target.value })}
             rows={2}
             placeholder="Ex.: BD 0,8; TGO 40; US transfontanela normal"
-            className="w-full rounded-sm bg-surface-2 border border-border px-3 py-2 text-input"
+            className="campo"
           />
         </label>
       </Grupo>
 
       {r.pendencias.length > 0 && (
         <div className="space-y-1">
-          {r.pendencias.map((p) => <p key={p} className="text-body-sm text-warning font-semibold">{p}</p>)}
+          {r.pendencias.map((p) => <p key={p} className="aviso">{p}</p>)}
         </div>
       )}
 
@@ -509,7 +510,7 @@ function ColetaCard({
       )}
 
       {r.hemograma && (
-        <details className="rounded-md border border-border bg-surface-2 px-3 py-2">
+        <details className="rounded-xl border border-border bg-surface-2 px-3 py-2">
           <summary className="tap cursor-pointer text-body-sm font-semibold flex items-center">
             Escore de Rodwell: {r.hemograma.rodwell.min === r.hemograma.rodwell.max ? r.hemograma.rodwell.min : `${r.hemograma.rodwell.min}–${r.hemograma.rodwell.max}`} de 7
           </summary>
@@ -526,9 +527,9 @@ function ColetaCard({
 
       {(hipo || temLabsVeno) && (
         <div className="flex flex-wrap gap-2">
-          {hipo && <button type="button" onClick={onHipoglicemia} className="tap rounded-sm bg-danger text-on-primary px-3 text-body-sm font-semibold">Abrir hipoglicemia</button>}
+          {hipo && <button type="button" onClick={onHipoglicemia} className="btn btn-perigo px-3 text-body-sm">Abrir hipoglicemia</button>}
           {temLabsVeno && (
-            <button type="button" onClick={() => { onLevarLabs(); setLevado(true); setTimeout(() => setLevado(false), 2000); }} className="tap rounded-sm bg-primary-soft text-primary border border-border px-3 text-body-sm font-semibold">
+            <button type="button" onClick={() => { onLevarLabs(); setLevado(true); setTimeout(() => setLevado(false), 2000); }} className="btn btn-tonal px-3 text-body-sm">
               {levado ? "Levado para a venóclise" : "Levar glicemia e eletrólitos para a venóclise"}
             </button>
           )}
@@ -536,7 +537,7 @@ function ColetaCard({
       )}
 
       {r.memoria.length > 0 && (
-        <details className="rounded-md border border-border px-3 py-2">
+        <details className="rounded-xl border border-border px-3 py-2">
           <summary className="tap cursor-pointer text-body-sm text-muted flex items-center">Memória de cálculo</summary>
           <ol className="mt-2 space-y-2 text-body-sm">
             {r.memoria.map((m) => (
@@ -554,7 +555,7 @@ function ColetaCard({
 
 function AchadoItem({ a }: { a: Achado }) {
   return (
-    <li className={`rounded-md border-l-4 border px-3 py-2 ${COR[a.status]}`}>
+    <li className={`rounded-xl border px-3 py-2 ${COR[a.status]}`}>
       <div className="text-body-sm"><span className="font-semibold">{a.exame}:</span> {a.texto}</div>
       {a.fonte && <div className="text-caption text-subtle">{a.fonte}</div>}
     </li>
@@ -564,8 +565,8 @@ function AchadoItem({ a }: { a: Achado }) {
 function TextoCurto({ rotulo, valor, onChange }: { rotulo: string; valor?: string; onChange: (v: string) => void }) {
   return (
     <label className="block">
-      <span className="block text-body-sm text-muted mb-1">{rotulo}</span>
-      <input type="text" value={valor ?? ""} onChange={(ev) => onChange(ev.target.value)} className="w-full rounded-sm bg-surface-2 border border-border px-3 text-input control-h" />
+      <span className="rotulo">{rotulo}</span>
+      <input type="text" value={valor ?? ""} onChange={(ev) => onChange(ev.target.value)} className="campo" />
     </label>
   );
 }

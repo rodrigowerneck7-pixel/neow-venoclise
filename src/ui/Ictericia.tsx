@@ -1,4 +1,5 @@
 import { useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { IcCheck, IcCopiar } from "./icones";
 import type { FichaRN } from "../core/ficha";
 import { contextoDaFicha } from "../core/internacao";
 import { calcularIctericia, limiarAap, type DadosIctericia, type EntradaIctericia, type Zona } from "../core/ictericia";
@@ -55,12 +56,12 @@ export function entradaIctericia(d: DadosIctericia, f: FichaRN, nascimento: stri
 }
 
 const ZONA: Record<Zona, { texto: string; classe: string }> = {
-  abaixo: { texto: "Abaixo do limiar de fototerapia", classe: "bg-success-soft border-success" },
-  faixa_foto: { texto: "Dentro da faixa de fototerapia", classe: "bg-warning-soft border-warning" },
-  fototerapia: { texto: "Fototerapia indicada", classe: "bg-warning-soft border-warning" },
-  faixa_exs: { texto: "Dentro da faixa de exsanguineotransfusão", classe: "bg-danger-soft border-danger" },
-  escalonamento: { texto: "Escalonamento de cuidados", classe: "bg-danger-soft border-danger" },
-  exsanguineo: { texto: "Limiar de exsanguineotransfusão", classe: "bg-danger-soft border-danger" },
+  abaixo: { texto: "Abaixo do limiar de fototerapia", classe: "bg-success-soft borda-sucesso" },
+  faixa_foto: { texto: "Dentro da faixa de fototerapia", classe: "bg-warning-soft borda-atencao" },
+  fototerapia: { texto: "Fototerapia indicada", classe: "bg-warning-soft borda-atencao" },
+  faixa_exs: { texto: "Dentro da faixa de exsanguineotransfusão", classe: "bg-danger-soft borda-perigo" },
+  escalonamento: { texto: "Escalonamento de cuidados", classe: "bg-danger-soft borda-perigo" },
+  exsanguineo: { texto: "Limiar de exsanguineotransfusão", classe: "bg-danger-soft borda-perigo" },
 };
 
 const lim = (l?: { min: number; max: number }) => (l ? (l.min === l.max ? `${fmt(l.min, 1)}` : `${fmt(l.min, 0)}–${fmt(l.max, 0)}`) : "—");
@@ -90,7 +91,7 @@ export function Ictericia({ d, setD, ficha, nascimento, agora, topo, fotoNaVenoc
         <NumInput rotulo={d.tipo === "transcutanea" ? "TcB" : "Bilirrubina total"} unidade="mg/dL" valor={d.bt} onChange={(v) => set({ bt: v })} ajuda="Total, sem descontar a direta" />
         {nasc ? (
           <div>
-            <label className="block text-body-sm text-muted mb-1" htmlFor="coleta-bt">Data e hora da coleta</label>
+            <label className="rotulo" htmlFor="coleta-bt">Data e hora da coleta</label>
             <div className="flex gap-2">
               <input
                 id="coleta-bt"
@@ -98,9 +99,9 @@ export function Ictericia({ d, setD, ficha, nascimento, agora, topo, fotoNaVenoc
                 value={d.coletaEm ?? ""}
                 max={isoLocal(agora)}
                 onChange={(ev) => set({ coletaEm: ev.target.value || null })}
-                className="w-full rounded-sm bg-surface-2 border border-border px-3 text-input control-h min-w-0"
+                className="campo min-w-0"
               />
-              <button type="button" onClick={() => set({ coletaEm: isoLocal(agora) })} className="tap shrink-0 rounded-sm bg-primary-soft text-primary border border-border px-3 text-body-sm font-semibold">
+              <button type="button" onClick={() => set({ coletaEm: isoLocal(agora) })} className="btn btn-tonal shrink-0 px-3 text-body-sm">
                 Agora
               </button>
             </div>
@@ -133,8 +134,8 @@ export function Ictericia({ d, setD, ficha, nascimento, agora, topo, fotoNaVenoc
         </div>
       </Card>
 
-      <details className="rounded-lg bg-surface border border-border shadow-card p-4" open={!!d.btAnterior?.bt}>
-        <summary className="tap cursor-pointer text-eyebrow text-muted flex items-center">BT anterior (velocidade de subida)</summary>
+      <details className="card" open={!!d.btAnterior?.bt}>
+        <summary className="tap cursor-pointer text-[15px] font-semibold flex items-center">BT anterior (velocidade de subida)</summary>
         <div className="mt-3 grid grid-cols-2 gap-3">
           <NumInput rotulo="BT anterior" unidade="mg/dL" valor={d.btAnterior?.bt} onChange={(v) => set({ btAnterior: { horasDeVida: d.btAnterior?.horasDeVida ?? null, bt: v } })} />
           <NumInput rotulo="Horas de vida" unidade="h" valor={d.btAnterior?.horasDeVida} onChange={(v) => set({ btAnterior: { bt: d.btAnterior?.bt ?? null, horasDeVida: v } })} />
@@ -144,20 +145,20 @@ export function Ictericia({ d, setD, ficha, nascimento, agora, topo, fotoNaVenoc
 
       {r.pendencias.length > 0 && (
         <Card titulo="Para calcular">
-          {r.pendencias.map((p) => <p key={p} className="text-body-sm text-warning font-semibold">{p}</p>)}
+          {r.pendencias.map((p) => <p key={p} className="aviso">{p}</p>)}
         </Card>
       )}
 
       {r.limiarFoto && r.referencia && (
-        <section className="rounded-lg bg-surface border border-border shadow-card p-4 space-y-3" aria-live="polite">
+        <section className="card space-y-3" aria-live="polite">
           {r.zona && (
-            <div className={`rounded-md border-l-4 border px-3 py-2 ${ZONA[r.zona].classe}`}>
+            <div className={`rounded-xl border px-3 py-2 ${ZONA[r.zona].classe}`}>
               <div className="text-heading">{ZONA[r.zona].texto}</div>
               <div className="text-caption text-muted">{r.referencia.igUsada} · {r.referencia.grupo}</div>
             </div>
           )}
           {r.pedirSerica != null && (
-            <div className={`rounded-md border-l-4 border px-3 py-2 ${r.pedirSerica ? "bg-warning-soft border-warning" : "bg-success-soft border-success"}`}>
+            <div className={`rounded-xl border px-3 py-2 ${r.pedirSerica ? "bg-warning-soft borda-atencao" : "bg-success-soft borda-sucesso"}`}>
               <div className="text-heading">{r.pedirSerica ? "Colher BT sérica" : "TcB longe do limiar"}</div>
               <div className="text-caption text-muted">{r.referencia.igUsada} · {r.referencia.grupo}</div>
             </div>
@@ -211,9 +212,9 @@ export function Ictericia({ d, setD, ficha, nascimento, agora, topo, fotoNaVenoc
         {r.suspensao && <p className={`text-body-sm ${r.suspensao.podeSuspender ? "text-success font-semibold" : ""}`}>{r.suspensao.podeSuspender ? "Critério de suspensão atingido. " : ""}{r.suspensao.texto}</p>}
         {r.rebote && <p className="text-body-sm">{r.rebote}</p>}
         {(indicada || d.emFototerapia) && !fotoNaVenoclise && (
-          <div className="rounded-md border border-primary-2 bg-primary-soft px-3 py-2 text-body-sm flex items-center justify-between gap-3">
+          <div className="faixa">
             <span>A venóclise ainda não considera fototerapia (faixa de volume +10–20%).</span>
-            <button type="button" onClick={onMarcarFotoVenoclise} className="tap shrink-0 rounded-sm bg-primary text-on-primary px-3 font-semibold">Marcar</button>
+            <button type="button" onClick={onMarcarFotoVenoclise} className="btn btn-primary shrink-0 px-3">Marcar</button>
           </div>
         )}
       </Card>
@@ -224,16 +225,16 @@ export function Ictericia({ d, setD, ficha, nascimento, agora, topo, fotoNaVenoc
           <button
             type="button"
             onClick={() => { void navigator.clipboard?.writeText(r.prescricaoTexto ?? "").then(() => { setCopiado(true); setTimeout(() => setCopiado(false), 2000); }); }}
-            className="tap w-full rounded-sm bg-primary text-on-primary font-semibold"
+            className="btn btn-primary w-full"
           >
-            {copiado ? "Copiado" : "Copiar"}
+            {copiado ? <><IcCheck />Copiado</> : <><IcCopiar />Copiar</>}
           </button>
         </Card>
       )}
 
       {r.memoria.length > 0 && (
-        <details className="rounded-lg bg-surface border border-border shadow-card p-4">
-          <summary className="tap cursor-pointer text-eyebrow text-muted flex items-center">Memória de cálculo</summary>
+        <details className="card">
+          <summary className="tap cursor-pointer text-[15px] font-semibold flex items-center">Memória de cálculo</summary>
           <ol className="mt-3 space-y-2 text-body-sm">
             {r.memoria.map((m) => (
               <li key={m.titulo}>
@@ -246,7 +247,7 @@ export function Ictericia({ d, setD, ficha, nascimento, agora, topo, fotoNaVenoc
         </details>
       )}
 
-      <button type="button" onClick={() => setD({ bt: null, tipo: "serica" })} className="tap w-full rounded-sm border border-border text-muted font-semibold">
+      <button type="button" onClick={() => setD({ bt: null, tipo: "serica" })} className="btn btn-discreto w-full">
         Limpar icterícia
       </button>
     </div>
@@ -255,7 +256,7 @@ export function Ictericia({ d, setD, ficha, nascimento, agora, topo, fotoNaVenoc
 
 function Valor({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
-    <div className="rounded-md bg-surface-2 px-2 py-2">
+    <div className="rounded-xl bg-surface-2 px-2 py-2">
       <div className="text-caption text-muted">{rotulo}</div>
       <div className="num text-heading">{valor}</div>
       <div className="text-caption text-subtle">mg/dL</div>

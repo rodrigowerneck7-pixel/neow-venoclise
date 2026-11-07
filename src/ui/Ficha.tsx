@@ -1,4 +1,5 @@
 import { useState, type Dispatch, type SetStateAction } from "react";
+import { IcFicha } from "./icones";
 import { pendenciasFicha, resumoFicha, type FichaRN, type GrupoABO, type Tipagem } from "../core/ficha";
 import { Card, NumInput, Segmentado } from "./campos";
 
@@ -66,7 +67,7 @@ export function FichaCompleta(props: Props & { onLimpar: () => void }) {
         />
         <p className="text-caption text-subtle">Usados pela icterícia (fase seguinte). Vazio = não informado.</p>
       </Card>
-      <button type="button" onClick={onLimpar} className="tap w-full rounded-sm border border-border text-muted font-semibold">
+      <button type="button" onClick={onLimpar} className="btn btn-discreto w-full">
         Limpar ficha
       </button>
     </div>
@@ -80,24 +81,26 @@ export function FichaResumo(props: Props & { onAbrirFicha: () => void }) {
   const [editando, setEditando] = useState(false);
   const aberto = editando || falta.length > 0;
   return (
-    <section className="rounded-lg bg-surface border border-border shadow-card p-4 space-y-3" aria-label="Ficha do RN">
-      <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0">
-          <h2 className="text-eyebrow text-muted">Ficha do RN</h2>
-          <p className="num text-body font-semibold">{resumoFicha(f, dia)}</p>
+    <section className="card !p-3 space-y-3" aria-label="Ficha do RN">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-eyebrow text-subtle mb-1.5">Ficha do RN</h2>
+          <p className="flex flex-wrap gap-1.5">
+            {resumoFicha(f, dia).split(" · ").map((t, i) => <span key={i} className="etiqueta">{t}</span>)}
+          </p>
         </div>
-        <div className="flex gap-2 shrink-0">
+        <div className="flex gap-1 shrink-0">
           {falta.length === 0 && (
-            <button type="button" onClick={() => setEditando((v) => !v)} aria-expanded={aberto} className="tap rounded-sm bg-surface-2 border border-border px-3 text-body-sm font-semibold">
+            <button type="button" onClick={() => setEditando((v) => !v)} aria-expanded={aberto} className="btn btn-tonal px-3 text-body-sm">
               {editando ? "Fechar" : "Editar"}
             </button>
           )}
-          <button type="button" onClick={onAbrirFicha} className="tap rounded-sm bg-surface-2 border border-border px-3 text-body-sm font-semibold">
-            Ficha
+          <button type="button" onClick={onAbrirFicha} className="btn btn-neutro px-3 text-body-sm" aria-label="Abrir a ficha completa">
+            <IcFicha />
           </button>
         </div>
       </div>
-      {falta.length > 0 && <p className="text-body-sm text-warning font-semibold">Informe {falta.join(", ")}.</p>}
+      {falta.length > 0 && <p className="aviso">Informe {falta.join(", ")}.</p>}
       {aberto && <CamposBasicos {...props} />}
     </section>
   );

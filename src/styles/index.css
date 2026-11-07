@@ -14,6 +14,8 @@
   --color-surface-3: var(--color-surface-3);
   --color-border: var(--color-border);
   --color-border-strong: var(--color-border-strong);
+  --color-seg-on: var(--color-seg-on);
+  --color-seg-on-text: var(--color-seg-on-text);
   --color-text: var(--color-text);
   --color-muted: var(--color-text-muted);
   --color-subtle: var(--color-text-subtle);
@@ -56,6 +58,7 @@
   --shadow-card: var(--shadow-card);
   --shadow-raised: var(--shadow-raised);
   --shadow-tabbar: var(--shadow-tabbar);
+  --shadow-seg: var(--shadow-seg);
 }
 
 @layer base {
@@ -103,12 +106,162 @@
 @utility text-result { font-size: var(--text-result); line-height: var(--leading-result); letter-spacing: var(--tracking-result); font-weight: 700; }
 @utility text-input { font-size: var(--text-input); line-height: var(--leading-input); font-weight: 600; }
 
+@utility borda-atencao { border-color: color-mix(in srgb, var(--color-warning) 30%, transparent); }
+@utility borda-sucesso { border-color: color-mix(in srgb, var(--color-success) 30%, transparent); }
+@utility borda-perigo { border-color: color-mix(in srgb, var(--color-danger) 35%, transparent); }
+@utility borda-primaria { border-color: color-mix(in srgb, var(--color-primary) 22%, transparent); }
+
 /* Entrada de página: parte de um estado visível, só desliza levemente. */
 @keyframes page-in { from { opacity: 0.6; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @utility page-enter { animation: page-in 220ms ease-out both; }
 
-/* Foco visível sempre (fora de @layer para vencer `outline-none` dos utilitários). */
-input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible {
+/* Foco visível sempre (fora de @layer para vencer `outline-none` dos utilitários).
+   `.campo-interno`: o anel fica na caixa em volta (.campo:focus-within), não no input. */
+input:focus-visible:not(.campo-interno, .campo), select:focus-visible:not(.campo), textarea:focus-visible:not(.campo), summary:focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
+}
+
+/* ============================================================
+   Componentes do NeoW (camada components: utilitários vencem)
+   ============================================================ */
+@layer components {
+  /* --- Cartão --- */
+  .card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: var(--space-lg);
+  }
+  .card-titulo {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 15px; line-height: 20px; letter-spacing: -0.006em; font-weight: 650; color: var(--color-text);
+  }
+  .card-titulo::before {
+    content: ""; flex-shrink: 0; width: 3px; height: 14px; border-radius: 2px; background: var(--color-primary);
+  }
+
+  /* --- Botões: primário, tonal, neutro, contorno, discreto, perigo --- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    min-height: var(--tap-min); min-width: var(--tap-min); padding: 0 16px;
+    border-radius: 12px; border: 1px solid transparent;
+    font-size: 15px; line-height: 20px; font-weight: 600; letter-spacing: -0.005em;
+    transition: background-color 150ms, border-color 150ms, color 150ms, transform 100ms;
+    -webkit-user-select: none; user-select: none;
+  }
+  .btn:active:not(:disabled) { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .btn-primary { background: var(--color-primary); color: var(--color-on-primary); }
+  .btn-primary:hover:not(:disabled) { background: var(--color-primary-hover); }
+  .btn-tonal { background: var(--color-primary-soft); color: var(--color-primary); }
+  .btn-neutro { background: var(--color-surface-2); color: var(--color-text); }
+  .btn-neutro:hover:not(:disabled) { background: var(--color-surface-3); }
+  .btn-contorno { background: transparent; color: var(--color-text); border-color: var(--color-border-strong); }
+  .btn-discreto { background: transparent; color: var(--color-text-muted); border-color: var(--color-border); }
+  .btn-perigo { background: var(--color-danger); color: var(--color-on-danger); }
+  .btn-perigo-contorno { background: transparent; color: var(--color-danger); border-color: color-mix(in srgb, var(--color-danger) 45%, transparent); }
+
+  /* --- Campos --- */
+  .rotulo { display: block; font-size: 13px; line-height: 18px; font-weight: 500; color: var(--color-text-muted); margin-bottom: 6px; }
+  .campo {
+    width: 100%; min-height: var(--control-h); padding: 0 14px;
+    background: var(--color-surface-2); color: var(--color-text);
+    border: 1px solid transparent; border-radius: 12px;
+    font-size: 17px; line-height: 24px; font-weight: 500;
+    transition: border-color 150ms, box-shadow 150ms, background-color 150ms;
+  }
+  textarea.campo { padding-top: 12px; padding-bottom: 12px; }
+  .campo::placeholder, .campo-interno::placeholder { color: var(--color-text-subtle); font-weight: 400; }
+  .campo:focus, .campo:focus-within {
+    outline: none; border-color: var(--color-focus); background: var(--color-surface);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-focus) 20%, transparent);
+  }
+  select.campo {
+    -webkit-appearance: none; appearance: none; padding-right: 40px; font-weight: 600;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237d8aa3' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center; background-size: 18px;
+  }
+  input[type="datetime-local"].campo, input[type="date"].campo { font-weight: 600; }
+
+  /* --- Opções que viram etiquetas (várias, ou rótulos longos) --- */
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    min-height: var(--tap-min); padding: 6px 14px; border-radius: 12px;
+    background: var(--color-surface); color: var(--color-text);
+    border: 1px solid var(--color-border-strong);
+    font-size: 14px; line-height: 18px; font-weight: 500; text-align: left;
+    transition: background-color 150ms, border-color 150ms, color 150ms;
+  }
+  .chip svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .chip[aria-pressed="true"] {
+    background: var(--color-primary-soft); color: var(--color-primary); font-weight: 600;
+    border-color: color-mix(in srgb, var(--color-primary) 55%, transparent);
+  }
+
+  /* --- Trilho segmentado (poucas opções curtas) --- */
+  .seg { display: flex; gap: 2px; padding: 4px; background: var(--color-surface-2); border-radius: 14px; }
+  .seg > button {
+    flex: 1 1 0; min-width: 0; min-height: var(--tap-min); padding: 0 8px; border-radius: 10px;
+    font-size: 14px; line-height: 18px; font-weight: 500; color: var(--color-text-muted);
+    transition: background-color 150ms, color 150ms, box-shadow 150ms;
+  }
+  .seg > button[aria-pressed="true"] { background: var(--color-seg-on); color: var(--color-seg-on-text); font-weight: 650; box-shadow: var(--shadow-seg); }
+
+  /* --- Avisos --- */
+  .aviso {
+    display: flex; gap: 8px; align-items: flex-start;
+    padding: 8px 12px; border-radius: 10px;
+    font-size: 14px; line-height: 20px; font-weight: 500; color: var(--color-text);
+    background: var(--color-warning-soft);
+  }
+  .aviso::before {
+    content: ""; flex-shrink: 0; width: 16px; height: 16px; margin-top: 2px; background: var(--color-warning);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z'/%3E%3Cpath d='M12 9v4M12 17h.01'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z'/%3E%3Cpath d='M12 9v4M12 17h.01'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  .aviso-perigo { background: var(--color-danger-soft); }
+  .aviso-perigo::before { background: var(--color-danger); }
+
+  /* --- Faixas (mensagem + ação) e caixas de estado --- */
+  .faixa {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 12px; border-radius: 12px; font-size: 14px; line-height: 20px;
+    background: var(--color-primary-soft); border: 1px solid color-mix(in srgb, var(--color-primary) 18%, transparent);
+  }
+  .faixa-sucesso { background: var(--color-success-soft); border-color: color-mix(in srgb, var(--color-success) 30%, transparent); }
+  .faixa-atencao { background: var(--color-warning-soft); border-color: color-mix(in srgb, var(--color-warning) 30%, transparent); }
+  .faixa-neutra { background: var(--color-surface-2); border-color: transparent; color: var(--color-text-muted); }
+
+  /* --- Etiquetas de dados (ficha do RN) --- */
+  .etiqueta {
+    display: inline-flex; align-items: center; padding: 3px 10px; border-radius: var(--radius-full);
+    background: var(--color-surface-2); font-size: 13px; line-height: 18px; font-weight: 600;
+    font-variant-numeric: tabular-nums; color: var(--color-text);
+  }
+
+  /* --- Abas sob o cabeçalho --- */
+  .abas { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity; }
+  .abas::-webkit-scrollbar { display: none; }
+  .abas > button {
+    position: relative; flex-shrink: 0; min-height: var(--tap-min); padding: 0 12px;
+    font-size: 15px; line-height: 20px; font-weight: 500; color: var(--color-on-appbar-muted); scroll-snap-align: start;
+  }
+  .abas > button[aria-selected="true"] { color: var(--color-on-appbar); font-weight: 650; }
+  .abas > button[aria-selected="true"]::after {
+    content: ""; position: absolute; left: 12px; right: 12px; bottom: 0; height: 3px; border-radius: 3px 3px 0 0; background: var(--color-on-appbar);
+  }
+
+  /* --- Detalhes (memória de cálculo etc.) --- */
+  details > summary { list-style: none; }
+  details > summary::-webkit-details-marker { display: none; }
+  details > summary.flex::after {
+    content: ""; margin-left: auto; flex-shrink: 0; width: 18px; height: 18px; background: currentColor; opacity: 0.7;
+    transition: transform 150ms;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  details[open] > summary.flex::after { transform: rotate(180deg); }
 }

@@ -14,8 +14,8 @@ const Aviso = ({ m }: { m: Msg }) =>
   m ? <p role={m.tipo === "erro" ? "alert" : "status"} className={`text-body-sm ${m.tipo === "erro" ? "text-danger" : "text-success"}`}>{m.texto}</p> : null;
 
 const msgErro = (e: unknown) => (e instanceof ErroCofre ? e.message : "Algo deu errado. Tente de novo.");
-const btn = "tap rounded-sm bg-primary text-on-primary font-semibold px-4 disabled:opacity-40";
-const btn2 = "tap rounded-sm bg-surface-2 border border-border font-semibold px-4";
+const btn = "btn btn-primary";
+const btn2 = "btn btn-neutro";
 
 function Seguranca({ estado, onMudou }: { estado: EstadoCofre; onMudou: () => void }) {
   const [atual, setAtual] = useState("");
@@ -179,8 +179,8 @@ function ApagarTudo({ onApagado }: { onApagado: () => void }) {
   return (
     <Card titulo="Apagar tudo">
       <p className="text-body-sm text-muted">Remove pacientes, histórico, PIN e preferências deste aparelho. Não dá para desfazer. Digite <strong>APAGAR</strong> para liberar.</p>
-      <input value={t} onChange={(e) => setT(e.target.value)} autoComplete="off" autoCapitalize="characters" className="w-full rounded-sm bg-surface-2 border border-border px-3 text-input control-h" aria-label="Confirmação" />
-      <button type="button" disabled={t !== "APAGAR"} onClick={async () => { await cofre.apagarTudo(); onApagado(); }} className="tap rounded-sm bg-danger text-on-primary font-semibold px-4 disabled:opacity-40">
+      <input value={t} onChange={(e) => setT(e.target.value)} autoComplete="off" autoCapitalize="characters" className="campo" aria-label="Confirmação" />
+      <button type="button" disabled={t !== "APAGAR"} onClick={async () => { await cofre.apagarTudo(); onApagado(); }} className="btn btn-perigo px-4">
         Apagar tudo agora
       </button>
     </Card>

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
+import { IcCadeado } from "./icones";
 
 export function CampoPin({ rotulo, valor, onChange, autoFocus }: { rotulo: string; valor: string; onChange: (v: string) => void; autoFocus?: boolean }) {
   return (
     <label className="block">
-      <span className="block text-body-sm text-muted mb-1">{rotulo}</span>
+      <span className="rotulo">{rotulo}</span>
       <input
         type="password"
         inputMode="numeric"
@@ -12,7 +13,7 @@ export function CampoPin({ rotulo, valor, onChange, autoFocus }: { rotulo: strin
         maxLength={12}
         value={valor}
         onChange={(e) => onChange(e.target.value.replace(/\D/g, ""))}
-        className="num w-full rounded-sm bg-surface-2 border border-border focus:border-focus outline-none px-3 text-input control-h tracking-widest"
+        className="campo num text-input text-center tracking-[0.5em]"
       />
     </label>
   );
@@ -47,9 +48,14 @@ export function Bloqueio({ onDesbloquear }: { onDesbloquear: (pin: string) => Pr
   };
 
   return (
-    <div className="min-h-dvh bg-bg text-text flex flex-col items-center justify-center px-6 gap-4">
-      <h1 className="text-heading">NeoW Venóclise</h1>
-      <p className="text-body-sm text-muted text-center">Digite o PIN para abrir os pacientes salvos.</p>
+    <div className="min-h-dvh bg-bg text-text flex flex-col items-center justify-center px-6 gap-5">
+      <span className="grid place-items-center size-16 rounded-full bg-primary-soft text-primary" aria-hidden>
+        <IcCadeado className="size-7" />
+      </span>
+      <div className="text-center space-y-1">
+        <h1 className="text-title"><span className="font-bold">NeoW</span> <span className="font-normal text-muted">Venóclise</span></h1>
+        <p className="text-body-sm text-muted">Digite o PIN para abrir os pacientes salvos.</p>
+      </div>
       <form
         className="w-full max-w-xs space-y-3"
         onSubmit={(e) => {
@@ -58,8 +64,8 @@ export function Bloqueio({ onDesbloquear }: { onDesbloquear: (pin: string) => Pr
         }}
       >
         <CampoPin rotulo="PIN" valor={pin} onChange={(v) => { setPin(v); setErro(false); }} autoFocus />
-        {erro && <p role="alert" className="text-body-sm text-danger">PIN incorreto.{espera > 0 ? ` Aguarde ${espera} s.` : ""}</p>}
-        <button type="submit" disabled={pin.length < 4 || espera > 0 || ocupado} className="tap w-full rounded-sm bg-primary text-on-primary font-semibold disabled:opacity-40">
+        {erro && <p role="alert" className="aviso aviso-perigo">PIN incorreto.{espera > 0 ? ` Aguarde ${espera} s.` : ""}</p>}
+        <button type="submit" disabled={pin.length < 4 || espera > 0 || ocupado} className="btn btn-primary w-full h-13">
           {ocupado ? "Abrindo…" : "Desbloquear"}
         </button>
       </form>

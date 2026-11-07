@@ -1,4 +1,4 @@
-import { useRef, type KeyboardEvent } from "react";
+import { useEffect, useRef, type KeyboardEvent } from "react";
 
 export type Aba = "ficha" | "venoclise" | "ictericia" | "internacao" | "atb" | "dieta" | "prescricao";
 
@@ -18,6 +18,9 @@ const idAba = (a: Aba) => `aba-${a}`;
 /** Setores do RN. Padrão WAI-ARIA de abas: setas ←/→ trocam, Home/End vão às pontas. */
 export function BarraAbas({ ativa, onChange }: { ativa: Aba; onChange: (a: Aba) => void }) {
   const lista = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    lista.current?.querySelector<HTMLElement>(`#${idAba(ativa)}`)?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [ativa]);
   const mover = (ev: KeyboardEvent) => {
     const i = ABAS.findIndex((a) => a.id === ativa);
     const alvo =
@@ -32,13 +35,7 @@ export function BarraAbas({ ativa, onChange }: { ativa: Aba; onChange: (a: Aba) 
     lista.current?.querySelector<HTMLButtonElement>(`#${idAba(ABAS[alvo].id)}`)?.focus();
   };
   return (
-    <div
-      ref={lista}
-      role="tablist"
-      aria-label="Setores do RN"
-      onKeyDown={mover}
-      className="-mx-4 px-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]"
-    >
+    <div ref={lista} role="tablist" aria-label="Setores do RN" onKeyDown={mover} className="abas -mx-2">
       {ABAS.map((a) => {
         const sel = a.id === ativa;
         return (
@@ -51,9 +48,6 @@ export function BarraAbas({ ativa, onChange }: { ativa: Aba; onChange: (a: Aba) 
             aria-controls={idPainel(a.id)}
             tabIndex={sel ? 0 : -1}
             onClick={() => onChange(a.id)}
-            className={`tap shrink-0 rounded-full px-4 text-body-sm font-semibold border transition-colors ${
-              sel ? "bg-primary text-on-primary border-primary" : "bg-surface text-text border-border"
-            }`}
           >
             {a.texto}
           </button>
@@ -71,7 +65,7 @@ export function EmBreve({ aba }: { aba: Aba }) {
   if (!m) return null;
   return (
     <section className="rounded-lg bg-surface border border-dashed border-border-strong p-4 space-y-2">
-      <h2 className="text-eyebrow text-muted">Em construção · {m.fase}</h2>
+      <h2 className="card-titulo">Em construção · {m.fase}</h2>
       <p className="text-body-sm">{m.texto}</p>
     </section>
   );

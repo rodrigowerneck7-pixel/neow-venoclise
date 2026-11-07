@@ -18,7 +18,7 @@ function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
   const [aberto, setAberto] = useState(false);
   return (
     <section className="rounded-lg bg-surface border border-border shadow-card">
-      <button type="button" onClick={() => setAberto(!aberto)} aria-expanded={aberto} className="tap w-full text-left px-4 text-eyebrow text-muted flex items-center justify-between">
+      <button type="button" onClick={() => setAberto(!aberto)} aria-expanded={aberto} className="tap w-full text-left px-4 text-[15px] font-semibold flex items-center justify-between">
         {titulo}
         <span aria-hidden>{aberto ? "–" : "+"}</span>
       </button>
@@ -175,7 +175,7 @@ export function Referencias() {
       <Secao titulo="Antimicrobianos — doses (PDF do serviço)">
         <div className="space-y-2">
           {ANTIMICROBIANOS.map((dr) => (
-            <details key={dr.id} className="rounded-md border border-border px-3 py-2">
+            <details key={dr.id} className="rounded-xl border border-border px-3 py-2">
               <summary className="tap cursor-pointer text-body-sm font-semibold flex items-center">{dr.nome}<span className="text-caption text-subtle ml-2">p. {dr.pagina}</span></summary>
               <div className="mt-2 space-y-3">
                 {dr.alerta && <p className="text-body-sm text-danger">{dr.alerta}</p>}

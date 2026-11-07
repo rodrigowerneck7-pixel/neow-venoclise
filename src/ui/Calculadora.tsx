@@ -155,7 +155,7 @@ export function Calculadora({ e, r, setE, cfg, setCfg, ficha, setFicha, topo, ab
 
         <Card titulo="Aditivos">
           <div>
-            <div className="text-body-sm text-muted mb-1">Gluconato de cálcio 10%</div>
+            <div className="rotulo">Gluconato de cálcio 10%</div>
             <div className="flex flex-wrap gap-2 mb-2">
               <Interruptor rotulo="Mãe diabética" ativo={!!e.calcio?.fatoresRisco?.maeDiabetica} onChange={(v) => set({ calcio: { ...e.calcio, fatoresRisco: { ...e.calcio?.fatoresRisco, maeDiabetica: v } } })} />
               <Interruptor rotulo="PIG" ativo={!!e.calcio?.fatoresRisco?.pig} onChange={(v) => set({ calcio: { ...e.calcio, fatoresRisco: { ...e.calcio?.fatoresRisco, pig: v } } })} />
@@ -164,7 +164,7 @@ export function Calculadora({ e, r, setE, cfg, setCfg, ficha, setFicha, topo, ab
             <NumInput rotulo="Dose" unidade="mL/kg/dia" valor={e.calcio?.mlKgDia} placeholder={fmt(cfg.calcioMlKgDia)} onChange={(v) => set({ calcio: { ...e.calcio, mlKgDia: v } })} ajuda="Vazio = preset do serviço" />
             <div className="flex flex-wrap gap-2 mt-2">
               {Object.values(PRESETS_CALCIO).map((p) => (
-                <button key={p.rotulo} type="button" onClick={() => set({ calcio: { ...e.calcio, mlKgDia: p.mlKg } })} className="tap rounded-sm bg-surface-2 border border-border px-3 text-caption text-left">
+                <button key={p.rotulo} type="button" onClick={() => set({ calcio: { ...e.calcio, mlKgDia: p.mlKg } })} className="chip text-caption">
                   {p.rotulo}
                 </button>
               ))}
@@ -177,8 +177,8 @@ export function Calculadora({ e, r, setE, cfg, setCfg, ficha, setFicha, topo, ab
           </div>
         </Card>
 
-        <details className="rounded-lg bg-surface border border-border shadow-card p-4">
-          <summary className="tap cursor-pointer text-eyebrow text-muted flex items-center">Laboratório (opcional)</summary>
+        <details className="card">
+          <summary className="tap cursor-pointer text-[15px] font-semibold flex items-center">Laboratório (opcional)</summary>
           <div className="mt-3 grid grid-cols-2 gap-3">
             <NumInput rotulo="Glicemia" unidade="mg/dL" valor={e.labs?.glicemia} onChange={(v) => setLab({ glicemia: v })} />
             <NumInput rotulo="Na" unidade="mmol/L" valor={e.labs?.na} onChange={(v) => setLab({ na: v })} />
@@ -196,7 +196,7 @@ export function Calculadora({ e, r, setE, cfg, setCfg, ficha, setFicha, topo, ab
             type="button"
             disabled={!r.liberado || !r.prescricaoTexto}
             onClick={() => onSalvarHistorico(r)}
-            className="tap w-full rounded-sm bg-primary text-on-primary font-semibold disabled:opacity-40"
+            className="btn btn-primary w-full"
           >
             Salvar prescrição no histórico
           </button>
@@ -204,7 +204,7 @@ export function Calculadora({ e, r, setE, cfg, setCfg, ficha, setFicha, topo, ab
 
         {abaixo}
 
-        <button type="button" onClick={onLimpar} className="tap w-full rounded-sm border border-border text-muted font-semibold">
+        <button type="button" onClick={onLimpar} className="btn btn-discreto w-full">
           Limpar venóclise
         </button>
       </div>
@@ -214,7 +214,7 @@ export function Calculadora({ e, r, setE, cfg, setCfg, ficha, setFicha, topo, ab
 
 function BotaoAlerta({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
   return (
-    <button type="button" onClick={onClick} className="tap shrink-0 rounded-sm bg-primary-soft text-primary border border-border px-3 text-body-sm font-semibold mt-1">
+    <button type="button" onClick={onClick} className="btn btn-tonal shrink-0 px-3 text-body-sm mt-1">
       {children}
     </button>
   );

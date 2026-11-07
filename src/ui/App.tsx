@@ -9,6 +9,7 @@ import { PREFERENCIAS_PADRAO, type EstadoCofre, type Paciente, type Preferencias
 import { parseNascimento } from "../db/validacao";
 import { FICHA_INICIAL, aplicarFicha, fichaDeEntrada, igTexto, type FichaRN } from "../core/ficha";
 import { ABAS, BarraAbas, EmBreve, idPainel, type Aba } from "./Abas";
+import { IcAjustes, IcCadeado, IcLapis, IcVoltar } from "./icones";
 import { Ajustes } from "./Ajustes";
 import { FichaCompleta, FichaResumo } from "./Ficha";
 import { Ictericia } from "./Ictericia";
@@ -342,37 +343,69 @@ export function App() {
   const rotuloVoltar = tela === "calc" ? "Pacientes" : tela === "editar" || (tela === "hipo" && hipoDeCalc) ? "Voltar" : "Pacientes";
 
   return (
-    <div className="min-h-dvh bg-bg text-text pb-28">
-      <header className="appbar-bg text-on-appbar sticky top-0 z-10 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] shadow-raised">
-        <div className="mx-auto max-w-xl flex items-center justify-between gap-3">
+    <div className="min-h-dvh bg-bg text-text pb-24">
+      <header className="appbar-bg text-on-appbar sticky top-0 z-10 px-4 pt-[max(0.5rem,env(safe-area-inset-top))] border-b border-[rgb(0_0_0/0.12)]">
+        <div className={`mx-auto max-w-xl flex items-center justify-between gap-2 ${tela === "calc" ? "" : "pb-2"}`}>
           {tela === "lista" ? (
-            <h1 className="text-heading">{titulo}</h1>
+            <h1 className="text-heading min-h-11 flex items-center gap-1.5">
+              <span className="font-bold tracking-tight">NeoW</span>
+              <span className="font-normal text-on-appbar-muted">Venóclise</span>
+            </h1>
+          ) : tela === "calc" ? (
+            <div className="flex items-center gap-1 min-w-0">
+              <button type="button" onClick={voltarHeader} className="tap -ml-3 flex items-center justify-center rounded-full" aria-label={`Voltar para ${rotuloVoltar}`}>
+                <IcVoltar className="size-6" />
+              </button>
+              <div className="min-w-0">
+                <div className="text-heading truncate">{atual ? `${atual.leito} · ${atual.iniciais}` : "Cálculo rápido"}</div>
+                <div className="text-caption text-on-appbar-muted truncate num">
+                  {atual ? `${fichaEfetiva.diaDeVida != null ? `D${fichaEfetiva.diaDeVida} · ` : ""}salvo no aparelho` : "nada é salvo no aparelho"}
+                </div>
+              </div>
+            </div>
           ) : (
-            <button type="button" onClick={voltarHeader} className="tap text-heading">
-              ‹ {rotuloVoltar}
+            <button type="button" onClick={voltarHeader} className="tap -ml-2 flex items-center gap-0.5 text-heading">
+              <IcVoltar className="size-6" />
+              {rotuloVoltar}
             </button>
           )}
-          <div className="flex items-center gap-3">
-            {tela === "calc" && aba === "venoclise" && <output className="num text-heading" aria-live="polite">{resumo}</output>}
+          <div className="flex items-center gap-1 shrink-0">
+            {tela === "calc" && aba === "venoclise" && <output className="num text-body-sm font-semibold rounded-full bg-[rgb(255_255_255/0.12)] px-3 py-1" aria-live="polite">{resumo}</output>}
+            {tela === "calc" && atual && (
+              <button type="button" onClick={() => setTela("editar")} className="tap flex items-center justify-center rounded-full -mr-2" aria-label="Editar paciente">
+                <IcLapis className="size-5" />
+              </button>
+            )}
             {tela === "lista" && (
               <>
-                {comPin && <button type="button" onClick={() => void bloquear()} className="tap text-body-sm font-semibold" aria-label="Bloquear agora">Bloquear</button>}
-                <button type="button" onClick={() => setTela("ajustes")} className="tap text-body-sm font-semibold">Ajustes</button>
+                {comPin && (
+                  <button type="button" onClick={() => void bloquear()} className="tap flex items-center justify-center rounded-full" aria-label="Bloquear agora">
+                    <IcCadeado className="size-5" />
+                  </button>
+                )}
+                <button type="button" onClick={() => setTela("ajustes")} className="tap flex items-center justify-center rounded-full -mr-2" aria-label="Ajustes">
+                  <IcAjustes className="size-5" />
+                </button>
               </>
             )}
           </div>
         </div>
+        {tela === "calc" && (
+          <div className="mx-auto max-w-xl">
+            <BarraAbas ativa={aba} onChange={setAba} />
+          </div>
+        )}
       </header>
 
       <main ref={mainRef} tabIndex={-1} aria-label={tituloTela[tela]} className="mx-auto max-w-xl px-4 pt-4 outline-none">
         {tela !== "lista" && <h1 className="sr-only">{tituloTela[tela]}</h1>}
         {novaVersao && (
-          <div role="status" className="mb-3 rounded-md border border-primary-2 bg-primary-soft px-3 py-2 text-body-sm flex items-center justify-between gap-3">
+          <div role="status" className="mb-3 faixa">
             <span>Nova versão disponível.</span>
-            <button type="button" onClick={() => { void salvarAgora().then(novaVersao); }} className="tap rounded-sm bg-primary text-on-primary px-3 font-semibold">Atualizar</button>
+            <button type="button" onClick={() => { void salvarAgora().then(novaVersao); }} className="btn btn-primary px-3">Atualizar</button>
           </div>
         )}
-        {aviso && <div role="status" className="mb-3 rounded-md border border-success bg-success-soft px-3 py-2 text-body-sm">{aviso}</div>}
+        {aviso && <div role="status" className="mb-3 faixa faixa-sucesso">{aviso}</div>}
 
         {tela === "lista" && (
           <ListaPacientes pacientes={pacientes} agora={agora} onAbrir={(id) => void abrir(id)} onNovo={() => setTela("novo")} onRapido={rapido} onHipo={() => { setHipoDeCalc(false); setTela("hipo"); }} onRefs={() => setTela("refs")} avisoPin={estado === "sem_pin" && pacientes.length > 0} />
@@ -397,21 +430,6 @@ export function App() {
         {tela === "hipo" && <Hipoglicemia pesoInicialG={hipoDeCalc ? (r.referencia?.pesoCalculoG ?? null) : null} />}
         {tela === "calc" && (
           <div className="space-y-4">
-            {atual ? (
-              <div className="flex items-center justify-between gap-3 rounded-lg bg-surface border border-border shadow-card px-4 py-3">
-                <div>
-                  <div className="text-heading">{atual.leito} · {atual.iniciais}</div>
-                  <div className="text-caption text-subtle">Salvo automaticamente neste aparelho</div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="num text-heading text-primary">{fichaEfetiva.diaDeVida != null ? `D${fichaEfetiva.diaDeVida}` : "—"}</div>
-                  <button type="button" onClick={() => setTela("editar")} className="tap rounded-sm bg-surface-2 border border-border px-3 text-body-sm font-semibold">Editar</button>
-                </div>
-              </div>
-            ) : (
-              <div className="rounded-md border border-border bg-surface-2 px-3 py-2 text-body-sm text-muted">Cálculo rápido: nada é salvo no aparelho.</div>
-            )}
-            <BarraAbas ativa={aba} onChange={setAba} />
             <div role="tabpanel" id={idPainel(aba)} aria-labelledby={`aba-${aba}`} className="space-y-4">
               {aba === "ficha" ? (
                 <FichaCompleta f={ficha} setF={setFicha} dia={fichaEfetiva.diaDeVida} diaAutomatico={diaAutomatico} onLimpar={limparFicha} />
@@ -507,7 +525,7 @@ export function App() {
         )}
       </main>
 
-      <footer className="fixed inset-x-0 bottom-0 bg-surface border-t border-border px-4 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] text-caption text-muted text-center">
+      <footer className="fixed inset-x-0 bottom-0 z-10 bg-surface/85 backdrop-blur-md border-t border-border px-6 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] text-caption text-subtle text-center">
         Ferramenta de apoio. Confira os cálculos. A decisão e a prescrição são do médico.
       </footer>
     </div>

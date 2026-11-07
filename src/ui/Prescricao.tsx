@@ -1,4 +1,5 @@
 import { useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { IcCheck, IcCopiar } from "./icones";
 import {
   AMBIENTES,
   CONTROLES,
@@ -43,12 +44,12 @@ export function Prescricao({ d, setD, topo, cabecalho, fontes, onAbrirAba }: Pro
               const daAba = s.id === "medicacoes" ? (fontes.antibioticos?.linhas ?? []) : s.itens;
               const estado = s.pendente ? "pendente" : daAba.length ? "ok" : "vazio";
               return (
-                <li key={s.id} className={`rounded-md border px-3 py-2 ${estado === "pendente" ? "bg-warning-soft border-warning" : estado === "ok" ? "bg-success-soft border-success" : "bg-surface-2 border-border"}`}>
+                <li key={s.id} className={`rounded-xl border px-3 py-2 ${estado === "pendente" ? "bg-warning-soft borda-atencao" : estado === "ok" ? "bg-success-soft borda-sucesso" : "bg-surface-2 border-border"}`}>
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-body-sm font-semibold">{s.id === "medicacoes" ? "Antibiótico" : s.titulo}</span>
-                    <button type="button" onClick={() => onAbrirAba(DE_ABA[s.id] as Aba)} className="tap shrink-0 rounded-sm border border-border bg-surface px-3 text-body-sm font-semibold">Abrir</button>
+                    <button type="button" onClick={() => onAbrirAba(DE_ABA[s.id] as Aba)} className="btn btn-contorno shrink-0 px-3 text-body-sm">Abrir</button>
                   </div>
-                  {estado === "pendente" && <p className="text-body-sm text-warning font-semibold">{s.pendente}</p>}
+                  {estado === "pendente" && <p className="aviso">{s.pendente}</p>}
                   {estado === "ok" && daAba.map((t) => <p key={t} className="text-caption text-muted line-clamp-2">{t}</p>)}
                   {estado === "vazio" && <p className="text-caption text-subtle">Nada lançado nesta aba.</p>}
                 </li>
@@ -102,8 +103,8 @@ export function Prescricao({ d, setD, topo, cabecalho, fontes, onAbrirAba }: Pro
               <div className="flex-1 min-w-0">
                 <Interruptor rotulo={`${s.titulo}${s.itens.length ? "" : " (vazio)"}`} ativo={s.incluida} onChange={(v) => set({ excluir: { ...d.excluir, [s.id]: !v } })} />
               </div>
-              <button type="button" aria-label={`Subir ${s.titulo}`} disabled={i === 0} onClick={() => set({ ordem: moverSecao(d.ordem, s.id, -1) })} className="tap rounded-sm border border-border px-3 font-semibold disabled:opacity-40">↑</button>
-              <button type="button" aria-label={`Descer ${s.titulo}`} disabled={i === r.secoes.length - 1} onClick={() => set({ ordem: moverSecao(d.ordem, s.id, 1) })} className="tap rounded-sm border border-border px-3 font-semibold disabled:opacity-40">↓</button>
+              <button type="button" aria-label={`Subir ${s.titulo}`} disabled={i === 0} onClick={() => set({ ordem: moverSecao(d.ordem, s.id, -1) })} className="btn btn-contorno px-3">↑</button>
+              <button type="button" aria-label={`Descer ${s.titulo}`} disabled={i === r.secoes.length - 1} onClick={() => set({ ordem: moverSecao(d.ordem, s.id, 1) })} className="btn btn-contorno px-3">↓</button>
             </li>
           ))}
         </ol>
@@ -116,9 +117,9 @@ export function Prescricao({ d, setD, topo, cabecalho, fontes, onAbrirAba }: Pro
             <button
               type="button"
               onClick={() => { void navigator.clipboard?.writeText(r.texto).then(() => { setCopiado(true); setTimeout(() => setCopiado(false), 2000); }); }}
-              className="tap w-full rounded-sm bg-primary text-on-primary font-semibold"
+              className="btn btn-primary w-full"
             >
-              {copiado ? "Copiado" : "Copiar prescrição"}
+              {copiado ? <><IcCheck />Copiado</> : <><IcCopiar />Copiar prescrição</>}
             </button>
             <p className="text-caption text-subtle">Confira cada item antes de usar. A prescrição é do médico.</p>
           </>
@@ -129,11 +130,11 @@ export function Prescricao({ d, setD, topo, cabecalho, fontes, onAbrirAba }: Pro
 
       {limpar ? (
         <div className="grid grid-cols-2 gap-2">
-          <button type="button" onClick={() => setLimpar(false)} className="tap rounded-sm border border-border font-semibold">Cancelar</button>
-          <button type="button" onClick={() => { setD({}); setLimpar(false); }} className="tap rounded-sm bg-danger text-on-primary font-semibold">Apagar itens desta aba</button>
+          <button type="button" onClick={() => setLimpar(false)} className="btn btn-contorno">Cancelar</button>
+          <button type="button" onClick={() => { setD({}); setLimpar(false); }} className="btn btn-perigo">Apagar itens desta aba</button>
         </div>
       ) : (
-        <button type="button" onClick={() => setLimpar(true)} className="tap w-full rounded-sm border border-border text-muted font-semibold">Limpar prescrição (só os itens desta aba)</button>
+        <button type="button" onClick={() => setLimpar(true)} className="btn btn-discreto w-full">Limpar prescrição (só os itens desta aba)</button>
       )}
     </div>
   );
@@ -142,8 +143,8 @@ export function Prescricao({ d, setD, topo, cabecalho, fontes, onAbrirAba }: Pro
 function AreaTexto({ rotulo, valor, onChange, placeholder }: { rotulo: string; valor?: string; onChange: (v: string) => void; placeholder?: string }) {
   return (
     <label className="block">
-      <span className="block text-body-sm text-muted mb-1">{rotulo}</span>
-      <textarea value={valor ?? ""} rows={3} placeholder={placeholder} onChange={(ev) => onChange(ev.target.value)} className="w-full rounded-sm bg-surface-2 border border-border px-3 py-2 text-input" />
+      <span className="rotulo">{rotulo}</span>
+      <textarea value={valor ?? ""} rows={3} placeholder={placeholder} onChange={(ev) => onChange(ev.target.value)} className="campo" />
     </label>
   );
 }

@@ -1,4 +1,5 @@
 import { useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
+import { IcCheck, IcCopiar } from "./icones";
 import { LEITES, VIAS, type DadosDieta, type Leite } from "../core/dieta";
 import type { FichaRN } from "../core/ficha";
 import { fmt } from "../core/numeros";
@@ -77,16 +78,16 @@ export function Dieta({ d, setD, ficha, nascimento, agora, topo, pesoCalculoG, v
       </Card>
 
       {(r.pendencias.length > 0 || r.prescricao) && (
-        <section className="rounded-lg bg-surface border border-border shadow-card p-4 space-y-3" aria-live="polite">
-          {r.pendencias.map((p) => <p key={p} className="text-body-sm text-warning font-semibold">{p}</p>)}
+        <section className="card space-y-3" aria-live="polite">
+          {r.pendencias.map((p) => <p key={p} className="aviso">{p}</p>)}
           {r.mlPorMamada != null && (
-            <div className="rounded-md bg-surface-2 px-3 py-2">
+            <div className="rounded-xl bg-surface-2 px-3 py-2">
               <div className="num text-heading">{fmt(r.mlPorMamada, 2)} mL de {d.intervaloH}/{d.intervaloH} h</div>
               <div className="text-caption text-muted num">{fmt(d.volumeMlKgDia as number)} mL/kg/dia · {fmt(r.mlDia as number, 1)} mL/dia · {r.mamadasDia} mamadas</div>
             </div>
           )}
           {r.prescricao && <p className="text-body-sm font-semibold">{r.prescricao}</p>}
-          {r.alertas.map((a) => <p key={a} className="text-body-sm text-warning font-semibold">{a}</p>)}
+          {r.alertas.map((a) => <p key={a} className="aviso">{a}</p>)}
           {r.notas.length > 0 && (
             <ul className="space-y-1 text-caption text-subtle list-disc pl-5">
               {r.notas.map((n) => (
@@ -109,7 +110,7 @@ export function Dieta({ d, setD, ficha, nascimento, agora, topo, pesoCalculoG, v
           {r.plano ? (
             <ol className="space-y-2">
               {r.plano.map((l) => (
-                <li key={l.dia} className={`rounded-md border px-3 py-2 ${l.eventos.length ? "border-primary-2 bg-primary-soft" : "border-border bg-surface-2"}`}>
+                <li key={l.dia} className={`rounded-xl border px-3 py-2 ${l.eventos.length ? "borda-primaria bg-primary-soft" : "border-border bg-surface-2"}`}>
                   <div className="text-body-sm font-semibold num">{l.dia === 0 ? "Hoje" : `+${l.dia} d`} · {ddmm(new Date(agora.getTime() + l.dia * 86_400_000))}</div>
                   <div className="text-body-sm num">
                     Dieta {fmt(l.dietaMlKgDia)} mL/kg/dia ({fmt(l.mlPorMamada, 2)} mL/mamada)
@@ -127,7 +128,7 @@ export function Dieta({ d, setD, ficha, nascimento, agora, topo, pesoCalculoG, v
       )}
 
       {levarValor != null && (r.prescricao || d.modo === "zero") && (
-        <div className="rounded-md border border-primary-2 bg-primary-soft px-3 py-2 text-body-sm flex items-center justify-between gap-3">
+        <div className="faixa">
           <span className="num">
             {venoclise.dietaMlKgDia === levarValor
               ? `A venóclise já desconta ${fmt(levarValor)} mL/kg/dia de dieta.`
@@ -136,9 +137,9 @@ export function Dieta({ d, setD, ficha, nascimento, agora, topo, pesoCalculoG, v
                 : `A venóclise ainda não desconta dieta; a de hoje é ${fmt(levarValor)} mL/kg/dia.`}
           </span>
           {venoclise.dietaMlKgDia === levarValor ? (
-            <button type="button" onClick={onAbrirVenoclise} className="tap shrink-0 rounded-sm bg-primary text-on-primary px-3 font-semibold">Abrir</button>
+            <button type="button" onClick={onAbrirVenoclise} className="btn btn-primary shrink-0 px-3">Abrir</button>
           ) : (
-            <button type="button" onClick={() => onLevarDieta(levarValor)} className="tap shrink-0 rounded-sm bg-primary text-on-primary px-3 font-semibold">Levar</button>
+            <button type="button" onClick={() => onLevarDieta(levarValor)} className="btn btn-primary shrink-0 px-3">Levar</button>
           )}
         </div>
       )}
@@ -149,20 +150,20 @@ export function Dieta({ d, setD, ficha, nascimento, agora, topo, pesoCalculoG, v
           <button
             type="button"
             onClick={() => { void navigator.clipboard?.writeText(texto).then(() => { setCopiado(true); setTimeout(() => setCopiado(false), 2000); }); }}
-            className="tap w-full rounded-sm bg-primary text-on-primary font-semibold"
+            className="btn btn-primary w-full"
           >
-            {copiado ? "Copiado" : "Copiar"}
+            {copiado ? <><IcCheck />Copiado</> : <><IcCopiar />Copiar</>}
           </button>
         </Card>
       )}
 
       {limpar ? (
         <div className="grid grid-cols-2 gap-2">
-          <button type="button" onClick={() => setLimpar(false)} className="tap rounded-sm border border-border font-semibold">Cancelar</button>
-          <button type="button" onClick={() => { setD({}); setLimpar(false); }} className="tap rounded-sm bg-danger text-on-primary font-semibold">Apagar a dieta</button>
+          <button type="button" onClick={() => setLimpar(false)} className="btn btn-contorno">Cancelar</button>
+          <button type="button" onClick={() => { setD({}); setLimpar(false); }} className="btn btn-perigo">Apagar a dieta</button>
         </div>
       ) : (
-        <button type="button" onClick={() => setLimpar(true)} className="tap w-full rounded-sm border border-border text-muted font-semibold">Limpar dieta</button>
+        <button type="button" onClick={() => setLimpar(true)} className="btn btn-discreto w-full">Limpar dieta</button>
       )}
     </div>
   );
@@ -171,8 +172,8 @@ export function Dieta({ d, setD, ficha, nascimento, agora, topo, pesoCalculoG, v
 function TextoCurto({ rotulo, valor, onChange, placeholder }: { rotulo: string; valor?: string; onChange: (v: string) => void; placeholder?: string }) {
   return (
     <label className="block">
-      <span className="block text-body-sm text-muted mb-1">{rotulo}</span>
-      <input type="text" value={valor ?? ""} placeholder={placeholder} onChange={(ev) => onChange(ev.target.value)} className="w-full rounded-sm bg-surface-2 border border-border px-3 text-input control-h" />
+      <span className="rotulo">{rotulo}</span>
+      <input type="text" value={valor ?? ""} placeholder={placeholder} onChange={(ev) => onChange(ev.target.value)} className="campo" />
     </label>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { IcCheck, IcCopiar } from "./icones";
 import { fmt } from "../core/numeros";
 import type { Registro } from "../db/modelos";
 import { Card } from "./campos";
@@ -20,7 +21,7 @@ export function Historico({ registros, onReusar, onApagar }: { registros: Regist
     <Card titulo="Histórico">
       <ul className="space-y-2">
         {registros.map((r) => (
-          <li key={r.id} className="rounded-md border border-border bg-surface-2 p-3">
+          <li key={r.id} className="rounded-xl border border-border bg-surface-2 p-3">
             <button type="button" onClick={() => setAberto(aberto === r.id ? null : r.id)} className="w-full text-left tap flex items-center justify-between gap-2" aria-expanded={aberto === r.id}>
               <span className="text-body-sm font-semibold">{dataHora(r.em)} · D{r.diaDeVida}</span>
               <span className="num text-body-sm">{fmt(r.vazaoMlH, 1)} mL/h · {fmt(r.concFinalRealPct, 1)}%</span>
@@ -32,17 +33,17 @@ export function Historico({ registros, onReusar, onApagar }: { registros: Regist
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
-                    className="tap rounded-sm bg-primary-soft text-primary border border-border px-3 text-body-sm font-semibold"
+                    className="btn btn-tonal px-3 text-body-sm"
                     onClick={async () => {
                       try { await navigator.clipboard.writeText(r.prescricaoTexto); setCopiado(r.id); } catch { /* sem permissão: o texto está selecionável */ }
                     }}
                   >
-                    {copiado === r.id ? "Copiado" : "Copiar texto"}
+                    {copiado === r.id ? <><IcCheck />Copiado</> : <><IcCopiar />Copiar texto</>}
                   </button>
-                  <button type="button" className="tap rounded-sm bg-primary-soft text-primary border border-border px-3 text-body-sm font-semibold" onClick={() => onReusar(r)}>
+                  <button type="button" className="btn btn-tonal px-3 text-body-sm" onClick={() => onReusar(r)}>
                     Reusar dados na tela
                   </button>
-                  <button type="button" className="tap rounded-sm border border-danger text-danger px-3 text-body-sm font-semibold" onClick={() => onApagar(r.id)}>
+                  <button type="button" className="btn btn-perigo-contorno px-3 text-body-sm" onClick={() => onApagar(r.id)}>
                     Apagar
                   </button>
                 </div>

@@ -16,8 +16,10 @@
   --color-surface: #ffffff;
   --color-surface-2: #eaeff6;      /* inputs, trilhos de controle */
   --color-surface-3: #dfe6f0;      /* pressionado / hover em superfície 2 */
-  --color-border: #d7dfea;
-  --color-border-strong: #b4c0d2;
+  --color-border: #e1e7ef;         /* filete de 1 px */
+  --color-border-strong: #c3cede;
+  --color-seg-on: #ffffff;          /* opção marcada no trilho segmentado */
+  --color-seg-on-text: #0b1f3f;
 
   /* --- Texto --- */
   --color-text: #0f1522;           /* preto suavizado com viés navy */
@@ -82,7 +84,8 @@
   --tabbar-height: 62px;
 
   /* --- Elevação --- */
-  --shadow-card: 0 1px 2px rgb(11 31 63 / 0.05), 0 6px 20px rgb(11 31 63 / 0.07);
+  --shadow-card: 0 1px 2px rgb(11 31 63 / 0.04), 0 2px 10px rgb(11 31 63 / 0.04);
+  --shadow-seg: 0 1px 2px rgb(11 31 63 / 0.10), 0 1px 1px rgb(11 31 63 / 0.04);
   --shadow-raised: 0 4px 10px rgb(11 31 63 / 0.10), 0 16px 40px rgb(11 31 63 / 0.14);
   --shadow-tabbar: 0 -4px 20px rgb(11 31 63 / 0.06);
 
@@ -106,8 +109,10 @@
   --color-surface: #1a1a46;
   --color-surface-2: #232359;
   --color-surface-3: #2c2c6a;
-  --color-border: #30306e;
-  --color-border-strong: #4a4a8e;
+  --color-border: rgb(255 255 255 / 0.09);
+  --color-border-strong: rgb(255 255 255 / 0.18);
+  --color-seg-on: #2c3a7c;
+  --color-seg-on-text: #eef3ff;
 
   --color-text: #f2f4fa;
   --color-text-muted: #b5bbd3;
@@ -142,7 +147,8 @@
 
   --gradient-appbar: linear-gradient(135deg, #1a1a46 0%, #2a3e7a 100%);
 
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.35), 0 6px 20px rgb(0 0 0 / 0.28);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.25);
+  --shadow-seg: 0 1px 2px rgb(0 0 0 / 0.3);
   --shadow-raised: 0 4px 10px rgb(0 0 0 / 0.4), 0 16px 40px rgb(0 0 0 / 0.45);
   --shadow-tabbar: 0 -4px 20px rgb(0 0 0 / 0.35);
 }
