@@ -8,6 +8,8 @@ import { fmt } from "../core/numeros";
 import { rotuloGrupo } from "../core/faixas";
 import { MAISELS_2012, limiarAap } from "../core/ictericia";
 import { LIQUOR_THOMSON, NEUTROFILOS_SBP2022 } from "../core/internacao";
+import { DURACOES, textoSpec } from "../core/antibiotico";
+import { ANTIMICROBIANOS, FONTE_DOSES } from "../core/dados/antimicrobianos";
 import { Card } from "./campos";
 
 const par = (a: readonly [number, number] | readonly number[]) => `${fmt(a[0])}–${fmt(a[1])}`;
@@ -158,6 +160,40 @@ export function Referencias() {
         </ul>
         <p className="text-caption text-subtle">Fonte: SBP, Hipoglicemia neonatal, Documento Científico nº 16 (2022), Quadro 2. Critério do app para hipoglicemia: &lt; 45 mg/dL (MS 2014).</p>
       </Secao>
+      <Secao titulo="Sepse precoce — SBP 2022">
+        <ul className="list-disc pl-5 space-y-1">
+          <li><b>Fatores de risco:</b> trabalho de parto &lt; 37 sem; bolsa rota ≥ 18 h; EGB+ sem profilaxia indicada; corioamnionite; febre materna nas 48 h antes do parto; cerclagem/pessário; medicina fetal &lt; 72 h; ITU materna sem tratamento ou &lt; 72 h.</li>
+          <li><b>≥ 35 sem, por categoria de risco:</b> sinais clínicos → hemoculturas + antibiótico. Sem sinais: temperatura materna intraparto ≥ 38 °C → hemoculturas + antibiótico; API para EGB não indicada ou adequada → rotina; indicada e inadequada → observação 36–48 h.</li>
+          <li><b>≥ 35 sem, avaliação clínica seriada (recomendada para o assintomático):</b> sinais → hemoculturas + antibiótico; temperatura ≥ 38 °C ou API inadequada → observação 36–48 h (culturas e antibiótico se surgirem sinais); senão rotina.</li>
+          <li><b>≤ 34 sem:</b> trabalho de parto prematuro, rotura prematura de membranas ou infecção intra-amniótica → hemoculturas + antibiótico. Parto induzido com API inadequada, suspeita de infecção intra-amniótica ou instabilidade → hemoculturas + antibiótico; sem esses achados ou cesárea eletiva com bolsa íntegra → sem antibiótico de rotina.</li>
+          <li><b>Empírico:</b> ampicilina ou penicilina cristalina + gentamicina ou amicacina. Meningite por Gram-negativo: cefotaxima ou cefepima.</li>
+          <li><b>36–48 h:</b> culturas negativas, RN bem e triagem negativa → suspender. Culturas negativas com quadro sugestivo e triagem alterada → sepse clínica, completar. Culturas positivas → completar e adequar.</li>
+        </ul>
+        <Tabela cab={["Sítio / agente", "Duração", "Fonte"]} linhas={DURACOES.map((x) => [x.texto, x.dias[0] === x.dias[1] ? `${x.dias[0]} dias` : `${x.dias[0]}–${x.dias[1]} dias`, x.fonte.startsWith("SBP") ? x.fonte : "PDF de doses"])} />
+        <p className="text-caption text-subtle">Fonte: SBP, Sepse neonatal precoce, Documento Científico nº 11 (2022), Figuras 1–3, Quadro 4 e recomendações (Puopolo/AAP 2018).</p>
+      </Secao>
+      <Secao titulo="Antimicrobianos — doses (PDF do serviço)">
+        <div className="space-y-2">
+          {ANTIMICROBIANOS.map((dr) => (
+            <details key={dr.id} className="rounded-md border border-border px-3 py-2">
+              <summary className="tap cursor-pointer text-body-sm font-semibold flex items-center">{dr.nome}<span className="text-caption text-subtle ml-2">p. {dr.pagina}</span></summary>
+              <div className="mt-2 space-y-3">
+                {dr.alerta && <p className="text-body-sm text-danger">{dr.alerta}</p>}
+                {dr.tabelas.map((t) => (
+                  <div key={t.id} className="space-y-1">
+                    <div className="text-body-sm font-semibold">{t.titulo}{t.ataque ? ` — ataque ${Array.isArray(t.ataque.porKg) ? (t.ataque.porKg as number[]).map((v) => fmt(v)).join("–") : fmt(t.ataque.porKg as number)} ${dr.unidade}/kg ${t.ataque.texto}` : ""}</div>
+                    <Tabela cab={["Situação", "Dose"]} linhas={t.linhas.map((l) => [l.rotulo, textoSpec(l.dose, dr.unidade)])} />
+                    {t.nota && <p className="text-caption text-subtle">{t.nota}</p>}
+                  </div>
+                ))}
+                {dr.notas?.map((n) => <p key={n} className="text-caption text-subtle">{n}</p>)}
+                {dr.renal && <p className="text-caption text-subtle">{dr.renal}</p>}
+              </div>
+            </details>
+          ))}
+        </div>
+        <p className="text-caption text-subtle">Fonte: {FONTE_DOSES}. IG = ao nascer; PMA = IG + dias de vida; PNA = dias de vida.</p>
+      </Secao>
       <Secao titulo="Fontes">
         <ul className="list-disc pl-5 space-y-1">
           <li>ESPGHAN/ESPEN/ESPR/CSPEN 2018. Guidelines on pediatric parenteral nutrition (Jochum; Mesotten; Mihatsch). Clin Nutr 2018;37.</li>
@@ -169,6 +205,8 @@ export function Referencias() {
           <li>Brasil. Ministério da Saúde. Portaria GM/MS nº 930, de 10/05/2012 (redação da Portaria nº 3.389/2013).</li>
           <li>SBP. Sepse neonatal precoce e a abordagem do recém-nascido de risco. Documento Científico nº 11, 2022.</li>
           <li>SBP. Hipoglicemia neonatal. Documento Científico nº 16, 2022.</li>
+          <li>Doses dos antimicrobianos na neonatologia (PDF do serviço, atualizado pelo UpToDate 2025).</li>
+          <li>Puopolo KM et al. Management of neonates born at ≥ 35 0/7 weeks / ≤ 34 6/7 weeks with suspected or proven early-onset bacterial sepsis. Pediatrics 2018 (citado pela SBP 2022).</li>
           <li>Rodwell RL, Leslie AL, Tudehope DI. Early diagnosis of neonatal sepsis using a hematologic scoring system. J Pediatr 1988;112:761-7.</li>
         </ul>
       </Secao>

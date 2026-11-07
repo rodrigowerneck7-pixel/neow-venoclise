@@ -64,7 +64,6 @@ export function BarraAbas({ ativa, onChange }: { ativa: Aba; onChange: (a: Aba) 
 }
 
 const EM_BREVE: Partial<Record<Aba, { fase: string; texto: string }>> = {
-  atb: { fase: "Fase 3", texto: "Iniciar ou não antibiótico, qual esquema (do protocolo do serviço), dose, duração, escalonamento e critérios de resposta." },
   dieta: { fase: "Fase 4", texto: "Tipo de leite, via e progressão da dieta, com a venóclise diminuindo junto." },
   prescricao: { fase: "Fase 5", texto: "Prescrição completa juntando os setores: berço aquecido/incubadora, dieta, venóclise, medicações, fototerapia, controles e cuidados. Por enquanto, a prescrição da venóclise está na aba Venóclise." },
 };

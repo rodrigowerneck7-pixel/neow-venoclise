@@ -108,3 +108,33 @@ O prompt diz "+10 a 20%" (fototerapia) e "−10 a 20%" (asfixia/SDR/VM). Impleme
 - Prematuridade e peso pela CID-10 P07 (< 37 e < 28 semanas; < 2.500, < 1.500 e < 1.000 g); pretermo tardio 34–36 6/7 pela SBP 2022.
 - PIG e GIG o médico marca: a curva de crescimento enviada (gráfico masculino) ainda não foi incorporada.
 - Gasometria, Hb/Ht e Apgar/pH de cordão: **só registro** (sem faixa cadastrada com fonte).
+
+---
+
+# Antibiótico (módulo 3, 07/11/2026)
+
+## y) Tabelas de dose (PDF do serviço, UpToDate 2025) — 🟡 confirmar
+- As tabelas são imagens no PDF: foram transcritas à mão e conferidas por teste, linha a linha.
+- **Idades:** PNA = dias de vida completos (D1 = 0 dias). IG ao nascer e PMA em semanas completas; PMA = IG + dias de vida.
+- **Peso da dose:** peso atual; sem ele, o de nascimento (com aviso).
+- **Faixas do PDF** (ex.: cefepima 30–50 mg/kg, amicacina 17,5–18 mg/kg, metronidazol a cada 6–8 h): o médico escolhe. Sem a escolha, não sai texto de prescrição.
+- **Creatinina entre linhas** (ex.: 0,75 ou 0,95 na vancomicina): o app não arredonda; mostra "fora das linhas".
+- **Duas tabelas para o mesmo caso** (pela IG × pelo peso): o médico escolhe. Se a outra der dose diferente, o app mostra.
+- **Doses que o PDF dá para bebês e crianças, sem linha de RN:** metronidazol e anfotericina lipossomal.
+- **O que não está no PDF:** dose de meningite da penicilina cristalina e do meropenem, e a cefotaxima inteira.
+- **Volume:** o app só calcula mg ou UI. O volume depende da diluição do serviço, que não está cadastrada.
+
+## z) Iniciar ou não — fluxogramas da SBP 2022 — 🟡
+- **≥ 35 semanas:** o app mostra as abordagens A (categoria de risco) e C (avaliação clínica seriada). A SBP recomenda a C para o RN assintomático (recomendação 2). A calculadora de sepse (B) não foi incorporada.
+- **Só desconforto respiratório leve a moderado logo após nascer:** o app usa a recomendação 3 (monitorar; culturas e antibiótico se piorar ou passar de 6 h). A Figura 2 sozinha mandaria colher culturas e iniciar antibiótico diante de qualquer sinal.
+- **≤ 34 semanas:** a figura diz "cesárea... com bolsa rota no momento do nascimento". O app lê como bolsa íntegra até o parto, que é como diz a recomendação 5.
+- **Combinações que não estão no fluxograma:** decisão médica.
+- **Janela:** até 72 h de vida (AAP); a ANVISA usa 48 h. Depois de 72 h o app não sugere conduta.
+
+## aa) Duração — 🟡
+- O Quadro 4 da SBP dá 7–10 dias para corrente sanguínea com agente isolado. O PDF de doses dá 10 dias para EGB e para Enterobacterales. Os dois aparecem e o médico escolhe.
+- O D1 do antibiótico são as primeiras 24 h desde a 1ª dose. Fim previsto = início + número de dias.
+
+## ab) Escalonamento — 🔴 pendente
+- Não há fonte para as linhas de escalonamento (falha clínica sem cultura, sepse tardia).
+- O app mostra só o que a SBP diz: adequar pela cultura e pelo antibiograma; meningite por Gram-negativo → cefotaxima ou cefepima. O resto depende do protocolo do hospital/CCIH.

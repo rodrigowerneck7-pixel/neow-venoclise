@@ -5,7 +5,9 @@
  * REGRA: o motor não diagnostica nem decide. Ele descreve onde cada valor cai na referência citada,
  * lista os critérios da Portaria que o médico marcou e monta o texto. Sem fonte => o valor é só registrado.
  */
+import { interpretarPeso } from "./calculo";
 import { GLICEMIA, HIPOCA, K_SERICO, MG_SERICO, NA_ALVO_PLASMA } from "./constantes";
+import type { FichaRN } from "./ficha";
 import { arredondar, fmt } from "./numeros";
 import type { PassoMemoria } from "./tipos";
 
@@ -230,6 +232,45 @@ export interface ContextoRN {
   pesoNascimentoG: number | null;
   pesoAtualG: number | null;
   diaDeVida: number | null;
+}
+
+/** Peso em gramas a partir da ficha (respeitando a confirmação de "kg?"). */
+export function contextoDaFicha(f: FichaRN): ContextoRN {
+  const pn = interpretarPeso(f.pesoNascimento, f.confirmouKg?.nascimento);
+  const pa = interpretarPeso(f.pesoAtual ?? null, f.confirmouKg?.atual);
+  return {
+    igSemanas: f.igSemanas,
+    igDias: f.igDias ?? null,
+    pesoNascimentoG: pn.tipo === "ok" ? pn.gramas : null,
+    pesoAtualG: pa.tipo === "ok" ? pa.gramas : null,
+    diaDeVida: f.diaDeVida,
+  };
+}
+
+/** O que a aba Antibiótico usa das coletas: última hemocultura, PCRs, maior Rodwell, líquor fora da referência. */
+export function resumoInfeccioso(coletas: ColetaAvaliada[]): {
+  hemocultura: string | null;
+  hemoculturaPositiva: boolean;
+  pcrs: { horas: number | null; mgdl: number }[];
+  rodwellMax: number | null;
+  liquorAlterado: boolean;
+} {
+  const ord = [...coletas].sort((a, b) => (a.r.horas ?? Infinity) - (b.r.horas ?? Infinity));
+  const comHc = ord.filter((x) => x.coleta.hemocultura);
+  const ult = comHc[comHc.length - 1]?.coleta;
+  const hemocultura = ult?.hemocultura
+    ? ult.hemocultura === "positiva"
+      ? `positiva${ult.hemoculturaAgente?.trim() ? ` (${ult.hemoculturaAgente.trim()})` : ""}`
+      : (STATUS_CULTURA.find((s) => s.valor === ult.hemocultura)?.texto.toLowerCase() ?? null)
+    : null;
+  const rods = ord.map((x) => x.r.hemograma?.rodwell.min).filter((v): v is number => v != null);
+  return {
+    hemocultura,
+    hemoculturaPositiva: comHc.some((x) => x.coleta.hemocultura === "positiva"),
+    pcrs: ord.filter((x) => x.r.pcrMgDl != null).map((x) => ({ horas: x.r.horas, mgdl: x.r.pcrMgDl as number })),
+    rodwellMax: rods.length ? Math.max(...rods) : null,
+    liquorAlterado: ord.some((x) => x.r.achados.some((a) => a.exame.startsWith("Líquor") && a.status === "alterado")),
+  };
 }
 
 /** Rótulos automáticos. Fonte: CID-10 P07 (< 37 sem; < 28 sem; < 2.500, < 1.500, < 1.000 g) e SBP 2022 (pretermo tardio 34–36 6/7). */

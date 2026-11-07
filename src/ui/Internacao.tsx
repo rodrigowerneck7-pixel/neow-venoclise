@@ -1,5 +1,4 @@
 import { useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
-import { interpretarPeso } from "../core/calculo";
 import type { FichaRN } from "../core/ficha";
 import { calcularIctericia, type DadosIctericia } from "../core/ictericia";
 import {
@@ -7,6 +6,7 @@ import {
   avaliarNivel,
   CIRURGIAS,
   classificacaoAutomatica,
+  contextoDaFicha,
   CUIDADOS,
   FATORES_SEPSE,
   FONTE_PORTARIA_930,
@@ -52,6 +52,21 @@ interface Props {
   onHipoglicemia: () => void;
 }
 
+/** Pretermo tardio, PIG, GIG ou filho de mãe diabética (grupo do Quadro 2 da SBP de hipoglicemia). */
+export const grupoRiscoHipoglicemia = (d: DadosInternacao, rn: ContextoRN) =>
+  (rn.igSemanas != null && rn.igSemanas >= 34 && rn.igSemanas < 37) || !!d.motivos.pig || !!d.motivos.gig || !!d.motivos.fmd;
+
+/** Avalia todas as coletas, com as horas de vida de cada uma. */
+export function avaliarColetas(d: DadosInternacao, rn: ContextoRN, nascimento: string | null): ColetaAvaliada[] {
+  const nasc = parseNascimento(nascimento);
+  const grupo = grupoRiscoHipoglicemia(d, rn);
+  return d.coletas.map((c) => {
+    const em = parseNascimento(c.em ?? null);
+    const horas = nasc ? (em ? horasDeVida(nasc, em) : null) : (c.horasManual ?? null);
+    return { coleta: c, r: avaliarColeta(c, { ...rn, horas, grupoRiscoHipo: grupo }), quando: quando(c.em) };
+  });
+}
+
 const isoLocal = (d: Date) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 const quando = (em?: string | null) => {
   const m = em?.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
@@ -73,26 +88,8 @@ export function Internacao({ d, setD, ficha, nascimento, agora, topo, ict, venoc
   const [copiado, setCopiado] = useState(false);
   const [limpar, setLimpar] = useState(false);
 
-  const rn: ContextoRN = useMemo(() => {
-    const pn = interpretarPeso(ficha.pesoNascimento, ficha.confirmouKg?.nascimento);
-    const pa = interpretarPeso(ficha.pesoAtual ?? null, ficha.confirmouKg?.atual);
-    return {
-      igSemanas: ficha.igSemanas,
-      igDias: ficha.igDias ?? null,
-      pesoNascimentoG: pn.tipo === "ok" ? pn.gramas : null,
-      pesoAtualG: pa.tipo === "ok" ? pa.gramas : null,
-      diaDeVida: ficha.diaDeVida,
-    };
-  }, [ficha]);
-
-  const grupoRiscoHipo = (rn.igSemanas != null && rn.igSemanas >= 34 && rn.igSemanas < 37) || !!d.motivos.pig || !!d.motivos.gig || !!d.motivos.fmd;
-  const horasDe = (c: ColetaExames) => (nasc ? (parseNascimento(c.em ?? null) ? horasDeVida(nasc, parseNascimento(c.em ?? null) as Date) : null) : (c.horasManual ?? null));
-
-  const avaliadas: ColetaAvaliada[] = useMemo(
-    () => d.coletas.map((c) => ({ coleta: c, r: avaliarColeta(c, { ...rn, horas: horasDe(c), grupoRiscoHipo }), quando: quando(c.em) })),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [d.coletas, rn, grupoRiscoHipo, nascimento],
-  );
+  const rn: ContextoRN = useMemo(() => contextoDaFicha(ficha), [ficha]);
+  const avaliadas: ColetaAvaliada[] = useMemo(() => avaliarColetas(d, rn, nascimento), [d, rn, nascimento]);
   const cronologicas = useMemo(() => [...avaliadas].sort((a, b) => (a.r.horas ?? Infinity) - (b.r.horas ?? Infinity)), [avaliadas]);
   const nivel = useMemo(() => avaliarNivel(d, rn), [d, rn]);
   const texto = useMemo(() => textoInternacao(d, rn, nivel, cronologicas), [d, rn, nivel, cronologicas]);
