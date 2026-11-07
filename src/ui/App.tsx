@@ -188,9 +188,14 @@ export function App() {
     const semDose = at.doses.find((x) => !x.prescricao);
     const ic = derivarIctericia(ict, fichaEfetiva, nasc);
     const temVeno = e.volumeMlKgDia != null || e.tig != null;
+    const dietaHoje = dieta.modo === "programada" ? (dieta.volumeMlKgDia ?? null) : dieta.modo === "zero" ? 0 : null;
+    const dietaNaVeno = e.dietaEnteralMlKgDia ?? 0;
+    const dietaDiferente = dietaHoje != null && Math.abs(dietaHoje - dietaNaVeno) > 1e-9;
     const fontes: Fontes = {
       dieta: di.r.prescricao ? { texto: di.r.prescricao } : dieta.modo ? { pendente: di.r.pendencias[0] ?? "Complete na aba Dieta" } : undefined,
-      venoclise: r.prescricaoTexto
+      venoclise: r.prescricaoTexto && dietaDiferente
+        ? { pendente: `A venóclise desconta ${fmt(dietaNaVeno)} mL/kg/dia de dieta, mas a aba Dieta tem ${fmt(dietaHoje as number)}: use "Levar" na aba Dieta e confira a venóclise` }
+        : r.prescricaoTexto
         ? { texto: `Venóclise: ${r.prescricaoTexto}` }
         : temVeno
           ? { pendente: r.pendencias[0] ?? r.alertas.find((a) => a.bloqueia)?.titulo ?? "Complete na aba Venóclise" }
@@ -200,7 +205,7 @@ export function App() {
         pendente: semDose ? `${semDose.droga.nome}: ${semDose.pendencias[0] ?? "complete a dose"}` : undefined,
       },
       fototerapia: ic.prescricaoTexto ? { texto: ic.prescricaoTexto } : ict.emFototerapia ? { pendente: "Escolha simples, dupla ou quádrupla na aba Icterícia" } : undefined,
-      respiratorio: textoRespiratorio(inter.suporte, inter.fio2),
+      respiratorio: inter.motivos.resp ? textoRespiratorio(inter.suporte, inter.fio2) : undefined,
       ambienteVenoclise: e.ambiente ? AMBIENTE_DA_VENOCLISE[e.ambiente] : null,
     };
     const rn = contextoDaFicha(fichaEfetiva);

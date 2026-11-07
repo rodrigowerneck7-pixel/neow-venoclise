@@ -29,7 +29,7 @@ import {
   type Status,
 } from "../core/internacao";
 import { fmt, parseContagemBR } from "../core/numeros";
-import { horasDeVida } from "../core/tempo";
+import { horasDeVida, isoLocal } from "../core/tempo";
 import type { Laboratorio } from "../core/tipos";
 import { novoId } from "../db/cofre";
 import { parseNascimento } from "../db/validacao";
@@ -63,11 +63,12 @@ export function avaliarColetas(d: DadosInternacao, rn: ContextoRN, nascimento: s
   return d.coletas.map((c) => {
     const em = parseNascimento(c.em ?? null);
     const horas = nasc ? (em ? horasDeVida(nasc, em) : null) : (c.horasManual ?? null);
-    return { coleta: c, r: avaliarColeta(c, { ...rn, horas, grupoRiscoHipo: grupo }), quando: quando(c.em) };
+    const r = avaliarColeta(c, { ...rn, horas, grupoRiscoHipo: grupo });
+    if (nasc && em && em.getTime() < nasc.getTime()) r.pendencias.unshift("A data da coleta é antes do nascimento: confira");
+    return { coleta: c, r, quando: quando(c.em) };
   });
 }
 
-const isoLocal = (d: Date) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 const quando = (em?: string | null) => {
   const m = em?.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
   return m ? `${m[3]}/${m[2]} ${m[4]}:${m[5]}` : "Sem data/hora";

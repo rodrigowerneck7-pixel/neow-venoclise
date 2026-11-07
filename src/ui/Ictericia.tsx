@@ -1,8 +1,9 @@
 import { useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import type { FichaRN } from "../core/ficha";
+import { contextoDaFicha } from "../core/internacao";
 import { calcularIctericia, limiarAap, type DadosIctericia, type EntradaIctericia, type Zona } from "../core/ictericia";
 import { fmt } from "../core/numeros";
-import { horasDeVida } from "../core/tempo";
+import { horasDeVida, isoLocal } from "../core/tempo";
 import { parseNascimento } from "../db/validacao";
 import { PainelAlertas } from "./Alertas";
 import { Card, Interruptor, NumInput, Segmentado } from "./campos";
@@ -21,7 +22,6 @@ interface Props {
   onMarcarFotoVenoclise: () => void;
 }
 
-const isoLocal = (d: Date) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 
 /** Monta a entrada do motor a partir do que está salvo + ficha. */
 export function entradaIctericia(d: DadosIctericia, f: FichaRN, nascimento: string | null): EntradaIctericia {
@@ -32,7 +32,7 @@ export function entradaIctericia(d: DadosIctericia, f: FichaRN, nascimento: stri
   return {
     igSemanas: f.igSemanas,
     igDias: f.igDias,
-    pesoNascimentoG: f.pesoNascimento,
+    pesoNascimentoG: contextoDaFicha(f).pesoNascimentoG,
     coombsPositivo: f.coombsDireto === "positivo",
     incompatABO: mae?.abo === "O" && (rn?.abo === "A" || rn?.abo === "B"),
     incompatRh: mae?.rh === "neg" && rn?.rh === "pos",

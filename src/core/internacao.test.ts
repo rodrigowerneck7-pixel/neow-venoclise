@@ -60,6 +60,10 @@ describe("nível de cuidado (Portaria 930/2012)", () => {
     expect(r.sugerido).toBe("UTIN");
     expect(r.criterios.filter((c) => c.ref === "art. 10, I")).toHaveLength(2);
   });
+  it("suporte e FiO2 só contam com o motivo respiratório marcado", () => {
+    expect(avaliarNivel(dados({ suporte: "vm", fio2: 40 }), RN).criterios).toEqual([]);
+    expect(avaliarNivel(dados({ motivos: { resp: true }, suporte: "vm", fio2: 40 }), RN).sugerido).toBe("UTIN");
+  });
   it("CPAP com FiO2 35% → UTIN; com 25% → aviso (a Portaria não enquadra)", () => {
     expect(avaliarNivel(dados({ motivos: { resp: true }, suporte: "cpap", fio2: 35 }), RN).sugerido).toBe("UTIN");
     const r = avaliarNivel(dados({ motivos: { resp: true }, suporte: "cpap", fio2: 25 }), RN);

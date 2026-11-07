@@ -322,9 +322,10 @@ export function avaliarNivel(d: DadosInternacao, c: ContextoRN): ResultadoNivel 
   }
 
   // UTIN — art. 10
-  const suporte = d.suporte ?? null;
-  const fio2 = d.fio2 ?? null;
   const resp = !!d.motivos.resp;
+  // Suporte e FiO2 só valem com o motivo marcado (desmarcar não apaga os campos).
+  const suporte = resp ? (d.suporte ?? null) : null;
+  const fio2 = resp ? (d.fio2 ?? null) : null;
   if (suporte === "vm") add("UTIN", "art. 10, I", "Ventilação mecânica");
   if (fio2 != null && fio2 > 30 && suporte !== "ar") add("UTIN", "art. 10, I", `Insuficiência respiratória com FiO₂ ${fmt(fio2, 0)}%, acima de 30%`);
   if (c.igSemanas == null) pend.push("IG ao nascer (art. 10, II)");

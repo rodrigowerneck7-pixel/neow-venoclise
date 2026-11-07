@@ -98,6 +98,8 @@ const conduta = (id: keyof typeof C, fonte: string): Conduta => ({ ...C[id], fon
 export interface EntradaInicio {
   igSemanas: number | null;
   horasDeVida: number | null;
+  /** Sem hora de nascimento, a janela usa o dia de vida (D4 em diante = mais de 72 h). */
+  diaDeVida?: number | null;
   d: DadosAntibiotico;
 }
 export interface ResultadoInicio {
@@ -123,7 +125,7 @@ export function decidirInicio(e: EntradaInicio): ResultadoInicio {
     r.pendencias.push("Informe a IG na ficha");
     return r;
   }
-  r.foraDaJanela = e.horasDeVida != null && e.horasDeVida > 72;
+  r.foraDaJanela = e.horasDeVida != null ? e.horasDeVida > 72 : e.diaDeVida != null && e.diaDeVida >= 4;
   const d = e.d;
   if (e.igSemanas >= 35) {
     r.grupo = "ge35";

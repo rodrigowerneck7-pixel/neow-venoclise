@@ -231,6 +231,9 @@ describe("iniciar ou não — sepse precoce (SBP 2022)", () => {
     expect(e.pendencias[0]).toMatch(/A API foi adequada/);
     expect(e.seriada).toBeUndefined();
     expect(dec(38, { sinais: "nao" }, 80).foraDaJanela).toBe(true);
+    // Sem hora de nascimento: usa o dia de vida da ficha (D4 em diante = > 72 h).
+    expect(decidirInicio({ igSemanas: 38, horasDeVida: null, diaDeVida: 10, d: ATB_INICIAL }).foraDaJanela).toBe(true);
+    expect(decidirInicio({ igSemanas: 38, horasDeVida: null, diaDeVida: 3, d: ATB_INICIAL }).foraDaJanela).toBe(false);
   });
   it("≤ 34 semanas", () => {
     expect(dec(32, {}).pendencias[0]).toMatch(/Trabalho de parto prematuro/);

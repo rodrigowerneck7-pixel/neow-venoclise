@@ -18,9 +18,9 @@ import {
 } from "../core/antibiotico";
 import { ANTIMICROBIANOS, DROGA, FONTE_DOSES, type DrogaId } from "../core/dados/antimicrobianos";
 import type { FichaRN } from "../core/ficha";
-import { resumoInfeccioso, type DadosInternacao } from "../core/internacao";
+import { contextoDaFicha, resumoInfeccioso, type DadosInternacao } from "../core/internacao";
 import { fmt } from "../core/numeros";
-import { horasDeVida } from "../core/tempo";
+import { horasDeVida, isoLocal } from "../core/tempo";
 import { parseNascimento } from "../db/validacao";
 import { Card, Chip, Interruptor, NumInput, Segmentado } from "./campos";
 import { avaliarColetas } from "./Internacao";
@@ -39,7 +39,6 @@ interface Props {
   onAbrirInternacao: () => void;
 }
 
-const isoLocal = (d: Date) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 const EMPIRICOS: DrogaId[] = [...EMPIRICO_PRECOCE.betalactamicos, ...EMPIRICO_PRECOCE.aminoglicosideos];
 const SN = [{ valor: "sim" as const, texto: "Sim" }, { valor: "nao" as const, texto: "Não" }];
 
@@ -65,9 +64,10 @@ export function Antibiotico({ d, setD, ficha, nascimento, agora, topo, inter, di
   const nasc = parseNascimento(nascimento);
   const horasAgora = nasc ? horasDeVida(nasc, agora) : null;
   const pnaDias = ctx.pnaDias;
-  const ini = decidirInicio({ igSemanas: rn.igSemanas, horasDeVida: horasAgora, d });
+  const ini = decidirInicio({ igSemanas: rn.igSemanas, horasDeVida: horasAgora, diaDeVida: ficha.diaDeVida, d });
   const reav = reavaliar(d);
-  const info = useMemo(() => resumoInfeccioso(avaliarColetas(inter, rn, nascimento)), [inter, rn, nascimento]);
+  const rnMemo = useMemo(() => contextoDaFicha(ficha), [ficha]);
+  const info = useMemo(() => resumoInfeccioso(avaliarColetas(inter, rnMemo, nascimento)), [inter, rnMemo, nascimento]);
 
   const setDroga = (i: number, p: Partial<DrogaNoEsquema>) => setD((x) => ({ ...x, drogas: x.drogas.map((g, j) => (j === i ? { ...g, ...p } : g)) }));
   const addDroga = (id: DrogaId) => setD((x) => (x.drogas.some((g) => g.droga === id) ? x : { ...x, drogas: [...x.drogas, { droga: id, tabela: DROGA[id].tabelas[0].id }] }));
@@ -103,7 +103,7 @@ export function Antibiotico({ d, setD, ficha, nascimento, agora, topo, inter, di
       <Card titulo="Iniciar antibiótico? (sepse precoce)">
         {ini.foraDaJanela ? (
           <p className="text-body-sm">
-            Mais de 72 h de vida{horasAgora != null ? ` (${Math.floor(horasAgora)} h)` : ""}: os fluxogramas de sepse precoce não se aplicam. Sepse tardia segue o protocolo do serviço, que ainda não está cadastrado.
+            Mais de 72 h de vida{horasAgora != null ? ` (${Math.floor(horasAgora)} h)` : ficha.diaDeVida != null ? ` (D${ficha.diaDeVida})` : ""}: os fluxogramas de sepse precoce não se aplicam. Sepse tardia segue o protocolo do serviço, que ainda não está cadastrado.
           </p>
         ) : ini.grupo == null ? (
           ini.pendencias.map((p) => <p key={p} className="text-body-sm text-warning font-semibold">{p}</p>)
