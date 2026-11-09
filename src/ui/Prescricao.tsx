@@ -1,5 +1,5 @@
 import { useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
-import { IcCheck, IcCopiar } from "./icones";
+import { IcAlerta, IcCheck, IcCopiar } from "./icones";
 import {
   AMBIENTES,
   CONTROLES,
@@ -44,12 +44,15 @@ export function Prescricao({ d, setD, topo, cabecalho, fontes, onAbrirAba }: Pro
               const daAba = s.id === "medicacoes" ? (fontes.antibioticos?.linhas ?? []) : s.itens;
               const estado = s.pendente ? "pendente" : daAba.length ? "ok" : "vazio";
               return (
-                <li key={s.id} className={`rounded-xl border px-3 py-2 ${estado === "pendente" ? "bg-warning-soft borda-atencao" : estado === "ok" ? "bg-success-soft borda-sucesso" : "bg-surface-2 border-border"}`}>
+                <li key={s.id} className={`rounded-md border px-3 py-2.5 ${estado === "pendente" ? "bg-warning-soft borda-atencao" : estado === "ok" ? "bg-surface-2 border-transparent" : "border-dashed border-border"}`}>
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-body-sm font-semibold">{s.id === "medicacoes" ? "Antibiótico" : s.titulo}</span>
+                    <span className="flex items-center gap-1.5 text-body-sm font-semibold">
+                      {estado === "ok" ? <IcCheck className="size-4 text-success" /> : estado === "pendente" ? <IcAlerta className="size-4 text-warning" /> : null}
+                      {s.id === "medicacoes" ? "Antibiótico" : s.titulo}
+                    </span>
                     <button type="button" onClick={() => onAbrirAba(DE_ABA[s.id] as Aba)} className="btn btn-contorno shrink-0 px-3 text-body-sm">Abrir</button>
                   </div>
-                  {estado === "pendente" && <p className="aviso">{s.pendente}</p>}
+                  {estado === "pendente" && <p className="text-body-sm font-medium">{s.pendente}</p>}
                   {estado === "ok" && daAba.map((t) => <p key={t} className="text-caption text-muted line-clamp-2">{t}</p>)}
                   {estado === "vazio" && <p className="text-caption text-subtle">Nada lançado nesta aba.</p>}
                 </li>
@@ -113,7 +116,7 @@ export function Prescricao({ d, setD, topo, cabecalho, fontes, onAbrirAba }: Pro
       <Card titulo="Prescrição">
         {r.texto ? (
           <>
-            <pre className="whitespace-pre-wrap text-body-sm font-sans num">{r.texto}</pre>
+            <pre className="rounded-md bg-surface-2 p-3 whitespace-pre-wrap text-body-sm font-sans num">{r.texto}</pre>
             <button
               type="button"
               onClick={() => { void navigator.clipboard?.writeText(r.texto).then(() => { setCopiado(true); setTimeout(() => setCopiado(false), 2000); }); }}

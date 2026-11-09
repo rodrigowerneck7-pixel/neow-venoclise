@@ -87,7 +87,7 @@ export function ConfigServico({ cfg, onSalvar }: { cfg: Cfg; onSalvar: (c: Cfg) 
           Salvar padrões
         </button>
       ) : (
-        <div className="rounded-xl border borda-atencao bg-warning-soft p-3 space-y-2">
+        <div className="rounded-md border borda-atencao bg-warning-soft p-3 space-y-2">
           <p role="alert" className="text-body-sm">Você mudou as ampolas. Todas as contas de Mg, Na e K usarão: <strong>{rotulo(d)}</strong>. Prescrição errada de concentração é perigosa.</p>
           <label className="flex items-start gap-2 text-body-sm">
             <input type="checkbox" checked={ok} onChange={(e) => setOk(e.target.checked)} className="mt-1 size-5" />

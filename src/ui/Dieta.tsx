@@ -81,9 +81,9 @@ export function Dieta({ d, setD, ficha, nascimento, agora, topo, pesoCalculoG, v
         <section className="card space-y-3" aria-live="polite">
           {r.pendencias.map((p) => <p key={p} className="aviso">{p}</p>)}
           {r.mlPorMamada != null && (
-            <div className="rounded-xl bg-surface-2 px-3 py-2">
-              <div className="num text-heading">{fmt(r.mlPorMamada, 2)} mL de {d.intervaloH}/{d.intervaloH} h</div>
-              <div className="text-caption text-muted num">{fmt(d.volumeMlKgDia as number)} mL/kg/dia · {fmt(r.mlDia as number, 1)} mL/dia · {r.mamadasDia} mamadas</div>
+            <div className="rounded-lg appbar-bg text-on-appbar px-3.5 py-3">
+              <div className="num text-title">{fmt(r.mlPorMamada, 2)} mL de {d.intervaloH}/{d.intervaloH} h</div>
+              <div className="text-caption text-on-appbar-muted num">{fmt(d.volumeMlKgDia as number)} mL/kg/dia · {fmt(r.mlDia as number, 1)} mL/dia · {r.mamadasDia} mamadas</div>
             </div>
           )}
           {r.prescricao && <p className="text-body-sm font-semibold">{r.prescricao}</p>}
@@ -110,7 +110,7 @@ export function Dieta({ d, setD, ficha, nascimento, agora, topo, pesoCalculoG, v
           {r.plano ? (
             <ol className="space-y-2">
               {r.plano.map((l) => (
-                <li key={l.dia} className={`rounded-xl border px-3 py-2 ${l.eventos.length ? "borda-primaria bg-primary-soft" : "border-border bg-surface-2"}`}>
+                <li key={l.dia} className={`rounded-md border px-3 py-2 ${l.eventos.length ? "borda-primaria bg-primary-soft" : "border-border bg-surface-2"}`}>
                   <div className="text-body-sm font-semibold num">{l.dia === 0 ? "Hoje" : `+${l.dia} d`} · {ddmm(new Date(agora.getTime() + l.dia * 86_400_000))}</div>
                   <div className="text-body-sm num">
                     Dieta {fmt(l.dietaMlKgDia)} mL/kg/dia ({fmt(l.mlPorMamada, 2)} mL/mamada)
@@ -146,7 +146,7 @@ export function Dieta({ d, setD, ficha, nascimento, agora, topo, pesoCalculoG, v
 
       {texto && (
         <Card titulo="Texto para a prescrição">
-          <pre className="whitespace-pre-wrap text-body-sm font-sans">{texto}</pre>
+          <pre className="rounded-md bg-surface-2 p-3 whitespace-pre-wrap text-body-sm font-sans">{texto}</pre>
           <button
             type="button"
             onClick={() => { void navigator.clipboard?.writeText(texto).then(() => { setCopiado(true); setTimeout(() => setCopiado(false), 2000); }); }}

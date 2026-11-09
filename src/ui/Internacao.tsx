@@ -248,7 +248,7 @@ export function Internacao({ d, setD, ficha, nascimento, agora, topo, ict, venoc
 
       <section className="card space-y-3" aria-live="polite">
         <h2 className="card-titulo">Nível de cuidado (Portaria 930/2012)</h2>
-        <div className={`rounded-xl border px-3 py-2 ${nivel.sugerido === "UTIN" ? "bg-danger-soft borda-perigo" : nivel.sugerido ? "bg-warning-soft borda-atencao" : "bg-surface-2 border-border"}`}>
+        <div className={`rounded-md border px-3 py-2 ${nivel.sugerido === "UTIN" ? "bg-danger-soft borda-perigo" : nivel.sugerido ? "bg-warning-soft borda-atencao" : "bg-surface-2 border-border"}`}>
           <div className="text-heading">{nivel.sugerido ? `Critérios de ${nivel.sugerido} presentes` : "Nenhum critério da Portaria marcado"}</div>
           <div className="text-caption text-muted">A Portaria lista critérios; onde internar é decisão do médico e do serviço.</div>
         </div>
@@ -297,7 +297,7 @@ export function Internacao({ d, setD, ficha, nascimento, agora, topo, ict, venoc
       ))}
 
       <Card titulo="Texto para a evolução">
-        <pre className="whitespace-pre-wrap text-body-sm font-sans">{texto}</pre>
+        <pre className="rounded-md bg-surface-2 p-3 whitespace-pre-wrap text-body-sm font-sans">{texto}</pre>
         <button
           type="button"
           onClick={() => { void navigator.clipboard?.writeText(texto).then(() => { setCopiado(true); setTimeout(() => setCopiado(false), 2000); }); }}
@@ -331,7 +331,7 @@ const ZONA_TXT = {
 } as const;
 
 function Sub({ children }: { children: ReactNode }) {
-  return <div className="rounded-xl border border-border bg-surface-2 p-3 space-y-3">{children}</div>;
+  return <div className="rounded-md border border-border bg-surface-2 p-3 space-y-3">{children}</div>;
 }
 
 function Sugestao({ texto, onClick }: { texto: string; onClick: () => void }) {
@@ -345,7 +345,7 @@ function Sugestao({ texto, onClick }: { texto: string; onClick: () => void }) {
 
 function Grupo({ titulo, aberto, children }: { titulo: string; aberto: boolean; children: ReactNode }) {
   return (
-    <details className="rounded-xl border border-border bg-surface-2 px-3 py-2" open={aberto}>
+    <details className="rounded-md border border-border bg-surface-2 px-3 py-2" open={aberto}>
       <summary className="tap cursor-pointer text-body-sm font-semibold flex items-center">{titulo}</summary>
       <div className="mt-2 space-y-3 pb-1">{children}</div>
     </details>
@@ -510,7 +510,7 @@ function ColetaCard({
       )}
 
       {r.hemograma && (
-        <details className="rounded-xl border border-border bg-surface-2 px-3 py-2">
+        <details className="rounded-md border border-border bg-surface-2 px-3 py-2">
           <summary className="tap cursor-pointer text-body-sm font-semibold flex items-center">
             Escore de Rodwell: {r.hemograma.rodwell.min === r.hemograma.rodwell.max ? r.hemograma.rodwell.min : `${r.hemograma.rodwell.min}–${r.hemograma.rodwell.max}`} de 7
           </summary>
@@ -537,7 +537,7 @@ function ColetaCard({
       )}
 
       {r.memoria.length > 0 && (
-        <details className="rounded-xl border border-border px-3 py-2">
+        <details className="rounded-md border border-border px-3 py-2">
           <summary className="tap cursor-pointer text-body-sm text-muted flex items-center">Memória de cálculo</summary>
           <ol className="mt-2 space-y-2 text-body-sm">
             {r.memoria.map((m) => (
@@ -555,7 +555,7 @@ function ColetaCard({
 
 function AchadoItem({ a }: { a: Achado }) {
   return (
-    <li className={`rounded-xl border px-3 py-2 ${COR[a.status]}`}>
+    <li className={`rounded-md border px-3 py-2 ${COR[a.status]}`}>
       <div className="text-body-sm"><span className="font-semibold">{a.exame}:</span> {a.texto}</div>
       {a.fonte && <div className="text-caption text-subtle">{a.fonte}</div>}
     </li>

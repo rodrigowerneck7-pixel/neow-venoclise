@@ -15,7 +15,7 @@ export function Hipoglicemia({ pesoInicialG }: { pesoInicialG: number | null }) 
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border borda-perigo bg-danger-soft px-3 py-2 text-body-sm">
+      <div className="rounded-md border borda-perigo bg-danger-soft px-3 py-2 text-body-sm">
         <strong>Hipoglicemia (glicemia &lt; 45 mg/dL ou sintomas).</strong> Tratar primeiro; confirmar a glicemia sem atrasar o bolus se houver sintomas. Fonte: MS 2014.
       </div>
       <Card titulo="Paciente">
@@ -27,7 +27,7 @@ export function Hipoglicemia({ pesoInicialG }: { pesoInicialG: number | null }) 
           </div>
         )}
         {r.invalido && <p role="alert" className="aviso aviso-perigo">Peso inválido.</p>}
-        {r.pendencias.map((p) => <p key={p} className="text-body font-semibold text-muted">⚠ {p}</p>)}
+        {r.pendencias.map((p) => <p key={p} className="aviso">{p}</p>)}
       </Card>
 
       {r.bolus && (

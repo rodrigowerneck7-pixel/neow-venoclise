@@ -310,7 +310,7 @@ export function Antibiotico({ d, setD, ficha, nascimento, agora, topo, inter, di
 
       {texto && (
         <Card titulo="Texto para a prescrição">
-          <pre className="whitespace-pre-wrap text-body-sm font-sans">{texto}</pre>
+          <pre className="rounded-md bg-surface-2 p-3 whitespace-pre-wrap text-body-sm font-sans">{texto}</pre>
           <button
             type="button"
             onClick={() => { void navigator.clipboard?.writeText(texto).then(() => { setCopiado(true); setTimeout(() => setCopiado(false), 2000); }); }}
@@ -344,7 +344,7 @@ function Pergunta({ rotulo, valor, onChange, dica }: { rotulo: string; valor?: S
 
 function CondutaBox({ c, rotulo }: { c: Conduta; rotulo?: string }) {
   return (
-    <div className={`rounded-xl border px-3 py-2 ${COR_CONDUTA[c.id] ?? "bg-surface-2 border-border"}`} aria-live="polite">
+    <div className={`rounded-md border px-3 py-2 ${COR_CONDUTA[c.id] ?? "bg-surface-2 border-border"}`} aria-live="polite">
       {rotulo && <div className="text-caption text-muted">{rotulo}</div>}
       <div className="text-heading">{c.titulo}</div>
       <p className="text-body-sm">{c.texto}</p>
@@ -396,12 +396,12 @@ function DrogaCard({
       )}
       {r.tabela.id === "creatinina" && <NumInput rotulo="Creatinina sérica" unidade="mg/dL" valor={creatinina} onChange={setCreatinina} />}
 
-      {r.alertas.map((a) => <p key={a} className="text-body-sm text-danger font-semibold">{a}</p>)}
+      {r.alertas.map((a) => <p key={a} className="aviso aviso-perigo">{a}</p>)}
 
       {sp && (
-        <div className="rounded-xl bg-surface-2 px-3 py-2">
-          <div className="num text-heading">{resumoDose(r)}</div>
-          <div className="text-caption text-muted">{r.linha?.rotulo} · {doseFonteTexto(r)}{r.ataque ? ` · ataque ${Array.isArray(r.ataque.porKg) ? (r.ataque.porKg as number[]).map((v) => fmt(v, 2)).join("–") : fmt(r.ataque.porKg as number, 2)} ${un}/kg ${r.ataque.texto}` : ""}</div>
+        <div className="rounded-lg appbar-bg text-on-appbar px-3.5 py-3">
+          <div className="num text-title">{resumoDose(r)}</div>
+          <div className="text-caption text-on-appbar-muted">{r.linha?.rotulo} · {doseFonteTexto(r)}{r.ataque ? ` · ataque ${Array.isArray(r.ataque.porKg) ? (r.ataque.porKg as number[]).map((v) => fmt(v, 2)).join("–") : fmt(r.ataque.porKg as number, 2)} ${un}/kg ${r.ataque.texto}` : ""}</div>
         </div>
       )}
       {faixaKg && <NumInput rotulo={`Dose escolhida (${un}/kg${sp?.porDia ? "/dia" : "/dose"})`} valor={g.porKg} onChange={(v) => set({ porKg: v })} ajuda={`Faixa do PDF: ${fmt(faixaKg[0], 2)}–${fmt(faixaKg[1], 2)}`} />}
@@ -409,7 +409,7 @@ function DrogaCard({
       {faixaAtaque && <NumInput rotulo={`Ataque escolhido (${un}/kg)`} valor={g.ataquePorKg} onChange={(v) => set({ ataquePorKg: v })} ajuda={`Faixa do PDF: ${fmt(faixaAtaque[0], 2)}–${fmt(faixaAtaque[1], 2)}`} />}
 
       {r.pendencias.map((p) => <p key={p} className="aviso">{p}</p>)}
-      {mudaEm && <p className="text-body-sm">A linha da tabela muda com {r.mudaComPna} dias de vida ({fmtDataHora(mudaEm).slice(0, 5)}): reveja a dose.</p>}
+      {mudaEm && <p className="aviso">A linha da tabela muda com {r.mudaComPna} dias de vida ({fmtDataHora(mudaEm).slice(0, 5)}): reveja a dose.</p>}
       {alternativas.map(({ t, x }) => (
         <p key={t.id} className="text-caption text-subtle">Pela tabela “{t.titulo}”: {resumoDose(x)} ({doseFonteTexto(x)}).</p>
       ))}
@@ -418,14 +418,15 @@ function DrogaCard({
         <button
           type="button"
           onClick={() => { void navigator.clipboard?.writeText(r.prescricao ?? "").then(() => { setCopiado(true); setTimeout(() => setCopiado(false), 2000); }); }}
-          className="btn btn-tonal w-full text-left px-3 py-2 text-body-sm"
+          className="btn btn-tonal w-full !justify-start text-left px-3 py-2.5 text-body-sm"
+          aria-label={`Copiar: ${r.prescricao}`}
         >
-          {copiado ? "Copiado" : r.prescricao}
+          {copiado ? <><IcCheck />Copiado</> : <><IcCopiar />{r.prescricao}</>}
         </button>
       )}
 
       {r.notas.length > 0 && (
-        <details className="rounded-xl border border-border px-3 py-2">
+        <details className="rounded-md border border-border px-3 py-2">
           <summary className="tap cursor-pointer text-body-sm text-muted flex items-center">Notas do PDF</summary>
           <ul className="mt-2 space-y-1 text-body-sm list-disc pl-5">
             {r.notas.map((n) => <li key={n}>{n}</li>)}

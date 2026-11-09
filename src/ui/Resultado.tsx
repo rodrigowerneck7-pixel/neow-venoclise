@@ -23,10 +23,10 @@ export function Resultado({ r }: { r: ResultadoVenoclise }) {
   if (r.pendencias.length) {
     return (
       <Card titulo="Resultado">
-        <ul className="space-y-1">
+        <ul className="space-y-2">
           {r.pendencias.map((p) => (
-            <li key={p} className="text-body font-semibold text-muted">
-              ⚠ {p}
+            <li key={p} className="aviso">
+              {p}
             </li>
           ))}
         </ul>
@@ -72,12 +72,12 @@ export function Resultado({ r }: { r: ResultadoVenoclise }) {
           <p className="aviso aviso-perigo">Resultado NÃO liberado: resolva os bloqueios acima. Valores só para conferência.</p>
         )}
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-2xl appbar-bg text-on-appbar p-3.5">
+          <div className="rounded-lg appbar-bg text-on-appbar p-3.5">
             <div className="text-caption text-on-appbar-muted">Vazão</div>
             <div className="num text-display mt-0.5">{fmt(c.vazaoMlH, 1)} <span className="text-body-sm font-medium text-on-appbar-muted">mL/h</span></div>
             <div className="text-caption text-on-appbar-muted">{c.etapas === 1 ? "etapa única 24 h" : `${c.etapas} etapas de ${c.horasPorEtapa} h`}</div>
           </div>
-          <div className="rounded-2xl appbar-bg text-on-appbar p-3.5">
+          <div className="rounded-lg appbar-bg text-on-appbar p-3.5">
             <div className="text-caption text-on-appbar-muted">Glicose final</div>
             <div className="num text-display mt-0.5">{fmt(c.concFinalRealPct, 2)}<span className="text-body-sm font-medium text-on-appbar-muted">%</span></div>
             <div className="text-caption text-on-appbar-muted">TIG {fmt(c.tig)} mg/kg/min · {fmt(c.glicoseGDia, 2)} g/dia</div>
@@ -95,7 +95,7 @@ export function Resultado({ r }: { r: ResultadoVenoclise }) {
             <Linha key={n} nome={n} valor={`${fmt(v, 2)} mL`} />
           ))}
         </div>
-        <div className="rounded-xl bg-surface-2 p-3 text-body-sm space-y-1">
+        <div className="rounded-md bg-surface-2 p-3 text-body-sm space-y-1">
           <div className="font-semibold">Aditivos (dia todo)</div>
           <div>Cálcio: {fmt(c.calcio.mlKg)} mL/kg · {fmt(c.calcio.mgSalKg, 1)} mg/kg de sal · {fmt(c.calcio.mgElementarKg, 1)} mg/kg elementar · {fmt(c.calcio.mmolKg, 3)} mmol/kg</div>
           <div>Magnésio: {fmt(c.magnesio.mEqKg)} mEq/kg · {fmt(c.magnesio.mmolKg, 3)} mmol/kg · {fmt(c.magnesio.mgKg, 1)} mg/kg</div>
@@ -106,7 +106,7 @@ export function Resultado({ r }: { r: ResultadoVenoclise }) {
 
       {r.liberado && r.prescricaoTexto && (
         <Card titulo="Prescrição" extra={<button type="button" onClick={copiar} className="btn btn-tonal px-3 text-body-sm">{copiado ? <><IcCheck />Copiado</> : <><IcCopiar />Copiar</>}</button>}>
-          <p className="num whitespace-pre-line select-all text-body">{r.prescricaoTexto}</p>
+          <p className="num rounded-md bg-surface-2 p-3 whitespace-pre-line select-all text-body-sm">{r.prescricaoTexto}</p>
         </Card>
       )}
 

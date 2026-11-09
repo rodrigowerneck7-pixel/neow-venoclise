@@ -19,7 +19,7 @@ const idAba = (a: Aba) => `aba-${a}`;
 export function BarraAbas({ ativa, onChange }: { ativa: Aba; onChange: (a: Aba) => void }) {
   const lista = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    lista.current?.querySelector<HTMLElement>(`#${idAba(ativa)}`)?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    lista.current?.querySelector<HTMLElement>(`#${idAba(ativa)}`)?.scrollIntoView({ block: "nearest", inline: "center" });
   }, [ativa]);
   const mover = (ev: KeyboardEvent) => {
     const i = ABAS.findIndex((a) => a.id === ativa);

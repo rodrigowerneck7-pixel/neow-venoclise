@@ -21,7 +21,7 @@ export function Historico({ registros, onReusar, onApagar }: { registros: Regist
     <Card titulo="Histórico">
       <ul className="space-y-2">
         {registros.map((r) => (
-          <li key={r.id} className="rounded-xl border border-border bg-surface-2 p-3">
+          <li key={r.id} className="rounded-md border border-border bg-surface-2 p-3">
             <button type="button" onClick={() => setAberto(aberto === r.id ? null : r.id)} className="w-full text-left tap flex items-center justify-between gap-2" aria-expanded={aberto === r.id}>
               <span className="text-body-sm font-semibold">{dataHora(r.em)} · D{r.diaDeVida}</span>
               <span className="num text-body-sm">{fmt(r.vazaoMlH, 1)} mL/h · {fmt(r.concFinalRealPct, 1)}%</span>

@@ -152,13 +152,13 @@ export function Ictericia({ d, setD, ficha, nascimento, agora, topo, fotoNaVenoc
       {r.limiarFoto && r.referencia && (
         <section className="card space-y-3" aria-live="polite">
           {r.zona && (
-            <div className={`rounded-xl border px-3 py-2 ${ZONA[r.zona].classe}`}>
+            <div className={`rounded-md border px-3 py-2 ${ZONA[r.zona].classe}`}>
               <div className="text-heading">{ZONA[r.zona].texto}</div>
               <div className="text-caption text-muted">{r.referencia.igUsada} · {r.referencia.grupo}</div>
             </div>
           )}
           {r.pedirSerica != null && (
-            <div className={`rounded-xl border px-3 py-2 ${r.pedirSerica ? "bg-warning-soft borda-atencao" : "bg-success-soft borda-sucesso"}`}>
+            <div className={`rounded-md border px-3 py-2 ${r.pedirSerica ? "bg-warning-soft borda-atencao" : "bg-success-soft borda-sucesso"}`}>
               <div className="text-heading">{r.pedirSerica ? "Colher BT sérica" : "TcB longe do limiar"}</div>
               <div className="text-caption text-muted">{r.referencia.igUsada} · {r.referencia.grupo}</div>
             </div>
@@ -221,7 +221,7 @@ export function Ictericia({ d, setD, ficha, nascimento, agora, topo, fotoNaVenoc
 
       {r.prescricaoTexto && (
         <Card titulo="Texto para a prescrição">
-          <pre className="whitespace-pre-wrap text-body-sm font-sans">{r.prescricaoTexto}</pre>
+          <pre className="rounded-md bg-surface-2 p-3 whitespace-pre-wrap text-body-sm font-sans">{r.prescricaoTexto}</pre>
           <button
             type="button"
             onClick={() => { void navigator.clipboard?.writeText(r.prescricaoTexto ?? "").then(() => { setCopiado(true); setTimeout(() => setCopiado(false), 2000); }); }}
@@ -256,7 +256,7 @@ export function Ictericia({ d, setD, ficha, nascimento, agora, topo, fotoNaVenoc
 
 function Valor({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
-    <div className="rounded-xl bg-surface-2 px-2 py-2">
+    <div className="rounded-md bg-surface-2 px-2 py-2">
       <div className="text-caption text-muted">{rotulo}</div>
       <div className="num text-heading">{valor}</div>
       <div className="text-caption text-subtle">mg/dL</div>
